@@ -1,0 +1,584 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>脆弱回音壁 · 真实脆弱体验券</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: #F5F0E8;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-family: 'Segoe UI', 'PingFang SC', 'KaiTi', 'Georgia', serif;
+            padding: 20px;
+            position: relative;
+        }
+
+        /* 手工纸纹理 */
+        body::before {
+            content: "";
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: radial-gradient(circle at 25% 40%, rgba(200, 180, 140, 0.1) 1.5px, transparent 1.5px);
+            background-size: 24px 24px;
+            pointer-events: none;
+        }
+
+        .container {
+            max-width: 520px;
+            width: 100%;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* 主卡片 - 手工信纸风格 */
+        .paper-card {
+            background: #FFFEF7;
+            border-radius: 4px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08), 0 0 0 1px #E8E0D0;
+            padding: 32px 28px;
+            position: relative;
+        }
+
+        /* 模拟纸张边缘 */
+        .paper-card::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 6px;
+            background: repeating-linear-gradient(90deg, #E8D5B5, #E8D5B5 8px, transparent 8px, transparent 16px);
+        }
+
+        /* 标题区 - 手写风格 */
+        .title-area {
+            text-align: center;
+            margin-bottom: 28px;
+        }
+
+        .title-area h1 {
+            font-family: 'KaiTi', '华文行书', cursive;
+            font-size: 32px;
+            font-weight: normal;
+            color: #8B5E3C;
+            letter-spacing: 4px;
+            margin-bottom: 8px;
+        }
+
+        .title-area .sub {
+            font-family: 'KaiTi', cursive;
+            font-size: 14px;
+            color: #B8956A;
+            border-top: 1px dashed #E0D0B8;
+            border-bottom: 1px dashed #E0D0B8;
+            display: inline-block;
+            padding: 4px 16px;
+        }
+
+        /* 装饰小元素 */
+        .decoration {
+            text-align: center;
+            font-size: 24px;
+            color: #D4B896;
+            margin-bottom: 20px;
+        }
+
+        /* 输入框 - 手写风格 */
+        .input-group {
+            margin-bottom: 20px;
+        }
+
+        .input-group label {
+            display: block;
+            font-size: 13px;
+            color: #8B5E3C;
+            margin-bottom: 8px;
+            font-family: 'KaiTi', cursive;
+        }
+
+        .input-group input,
+        .input-group textarea {
+            width: 100%;
+            background: #FFFCF5;
+            border: 1px solid #E0D0B8;
+            border-radius: 12px;
+            padding: 12px 16px;
+            font-size: 15px;
+            font-family: 'Segoe UI', 'KaiTi', monospace;
+            color: #4A3520;
+            outline: none;
+            transition: all 0.2s;
+        }
+
+        .input-group input:focus,
+        .input-group textarea:focus {
+            border-color: #D4A76A;
+            box-shadow: 0 0 0 2px rgba(212, 167, 106, 0.2);
+        }
+
+        .input-group textarea {
+            resize: none;
+            height: 100px;
+            line-height: 1.6;
+        }
+
+        .char-count {
+            text-align: right;
+            font-size: 11px;
+            color: #B8A07A;
+            margin-top: 6px;
+        }
+
+        /* 按钮 - 手绘风格 */
+        .btn {
+            width: 100%;
+            padding: 14px;
+            border: none;
+            border-radius: 40px;
+            font-size: 16px;
+            font-family: 'KaiTi', cursive;
+            font-weight: normal;
+            cursor: pointer;
+            transition: all 0.2s;
+            background: #E8D5B5;
+            color: #6B4E2E;
+            letter-spacing: 2px;
+        }
+
+        .btn-primary {
+            background: #D4A76A;
+            color: white;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .btn-primary:active {
+            transform: scale(0.97);
+            background: #C49658;
+        }
+
+        .btn-secondary {
+            background: #F0E8D8;
+            color: #8B5E3C;
+            border: 1px solid #E0D0B8;
+            margin-top: 12px;
+        }
+
+        .btn-secondary:active {
+            transform: scale(0.97);
+            background: #E8DCC8;
+        }
+
+        /* 故事展示卡片 */
+        .story-result {
+            margin-top: 24px;
+            padding: 20px;
+            background: #FFFCF5;
+            border-radius: 16px;
+            border: 1px solid #E8DCC8;
+            position: relative;
+        }
+
+        .story-result::before {
+            content: "“";
+            position: absolute;
+            top: -8px;
+            left: 12px;
+            font-size: 48px;
+            color: #D4B896;
+            font-family: serif;
+        }
+
+        .story-nickname {
+            font-size: 12px;
+            color: #B8956A;
+            margin-bottom: 12px;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .story-content {
+            font-size: 16px;
+            line-height: 1.7;
+            color: #4A3520;
+            margin-bottom: 16px;
+            padding-left: 12px;
+            font-style: normal;
+        }
+
+        .story-footer {
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+            gap: 16px;
+            border-top: 1px dashed #E8DCC8;
+            padding-top: 12px;
+        }
+
+        .resonate-btn {
+            background: transparent;
+            border: 1px solid #D4A76A;
+            color: #D4A76A;
+            padding: 4px 16px;
+            border-radius: 30px;
+            font-size: 12px;
+            cursor: pointer;
+            font-family: inherit;
+            transition: all 0.2s;
+        }
+
+        .resonate-btn:active {
+            background: #D4A76A;
+            color: white;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: #B8A07A;
+            font-family: 'KaiTi', cursive;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #B8A07A;
+        }
+
+        .divider {
+            display: flex;
+            align-items: center;
+            margin: 24px 0;
+            color: #D4B896;
+            font-size: 12px;
+        }
+
+        .divider-line {
+            flex: 1;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, #E0D0B8, transparent);
+        }
+
+        .divider-text {
+            padding: 0 12px;
+        }
+
+        .toast-message {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #4A3520;
+            color: #FFFEF7;
+            padding: 10px 20px;
+            border-radius: 40px;
+            font-size: 13px;
+            z-index: 100;
+            opacity: 0;
+            transition: opacity 0.3s;
+            pointer-events: none;
+            white-space: nowrap;
+        }
+
+        .toast-message.show {
+            opacity: 1;
+        }
+
+        .footer-note {
+            text-align: center;
+            font-size: 11px;
+            color: #C8B898;
+            margin-top: 20px;
+            font-family: 'KaiTi', cursive;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="paper-card">
+        <div class="title-area">
+            <h1>脆弱回音壁</h1>
+            <div class="sub">匿名 · 真诚 · 不评价</div>
+        </div>
+        <div class="decoration">
+            ✧ 你的脆弱，有人听见 ✧
+        </div>
+
+        <!-- 发布区域 -->
+        <div class="input-group">
+            <label>🌙 你的名字（匿名）</label>
+            <input type="text" id="nickname" placeholder="比如：失眠的星星、一只流浪猫" maxlength="20">
+        </div>
+        <div class="input-group">
+            <label>📝 你的故事</label>
+            <textarea id="story" placeholder="写下你的一次脆弱时刻...&#10;（140字以内）" maxlength="140"></textarea>
+            <div class="char-count"><span id="charCount">0</span>/140</div>
+        </div>
+        <button class="btn btn-primary" id="publishBtn">✧ 寄出这封信 ✧</button>
+
+        <div class="divider">
+            <div class="divider-line"></div>
+            <div class="divider-text">或</div>
+            <div class="divider-line"></div>
+        </div>
+
+        <!-- 随机抽取区域 -->
+        <button class="btn btn-secondary" id="randomBtn">🎲 拾起一封信 🎲</button>
+
+        <!-- 展示区域 -->
+        <div id="resultArea"></div>
+    </div>
+    <div class="footer-note">
+        💛 每一个脆弱都值得被看见。你并不孤单。
+    </div>
+</div>
+
+<div id="toast" class="toast-message"></div>
+
+<script>
+    // ==================== Supabase 配置 ====================
+    const SUPABASE_URL = "https://zzupfasatdsdfkugkdpw.supabase.co";
+    const SUPABASE_ANON_KEY = "sb_publishable_9ChlMMnPSHZERismpzmiOQ_bbs6dFdn";
+    const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    
+    // DeepSeek API
+    const DEEPSEEK_API_KEY = "sk-b3f799ba296543598b043f3d4ddaee14";
+    const API_URL = "https://api.deepseek.com/v1/chat/completions";
+    
+    let currentStory = null;
+    
+    // ==================== 初始化 ====================
+    function init() {
+        setupEventListeners();
+        updateCharCount();
+        // 测试数据库连接
+        testConnection();
+    }
+    
+    async function testConnection() {
+        try {
+            const { error } = await supabase.from('stories').select('count', { count: 'exact', head: true });
+            if (error) {
+                console.log("数据库连接测试失败，请确保已创建 stories 表");
+            } else {
+                console.log("数据库连接成功");
+            }
+        } catch (e) {
+            console.log("连接测试出错");
+        }
+    }
+    
+    // 显示提示
+    function showToast(message, duration = 2000) {
+        const toast = document.getElementById('toast');
+        toast.textContent = message;
+        toast.classList.add('show');
+        setTimeout(() => {
+            toast.classList.remove('show');
+        }, duration);
+    }
+    
+    // 调用DeepSeek生成回应
+    async function getAIResponse(storyContent, type = 'response') {
+        const systemPrompt = type === 'response' 
+            ? "你是一个温暖、治愈的倾听者。请用温柔、简短的话（30字以内）回应这个人的脆弱故事，表达理解和陪伴。不要评价，不要说教，只说一句温暖的话。像朋友一样。"
+            : "你是一个温暖的倾听者。看到这个人的脆弱故事后，请用一句话（20字以内）表达你的理解和陪伴。不要说教，不要评价，只说一句温柔的话。";
+        
+        try {
+            const response = await fetch(API_URL, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${DEEPSEEK_API_KEY}`
+                },
+                body: JSON.stringify({
+                    model: "deepseek-chat",
+                    messages: [
+                        { role: "system", content: systemPrompt },
+                        { role: "user", content: storyContent }
+                    ],
+                    max_tokens: 80,
+                    temperature: 0.8
+                })
+            });
+            
+            if (response.ok) {
+                const data = await response.json();
+                return data.choices[0].message.content;
+            }
+        } catch (error) {
+            console.log("AI回应失败");
+        }
+        return type === 'response' ? "你的故事被收到了。我在这里陪着你。" : "愿你的脆弱被温柔以待。";
+    }
+    
+    // 发布故事
+    async function publishStory() {
+        const nickname = document.getElementById('nickname').value.trim();
+        const content = document.getElementById('story').value.trim();
+        
+        if (!nickname) { showToast("给自己取个名字吧"); return; }
+        if (!content) { showToast("写下你的故事吧"); return; }
+        if (content.length > 140) { showToast("故事不能超过140字"); return; }
+        
+        showToast("✨ 你的故事正在被聆听...");
+        
+        try {
+            // 获取AI回应
+            const aiResponse = await getAIResponse(content, 'response');
+            
+            // 保存到Supabase
+            const { error } = await supabase.from('stories').insert([{
+                id: Date.now().toString(),
+                nickname: nickname.substring(0, 20),
+                content: content,
+                resonate: 0
+            }]);
+            
+            if (error) throw error;
+            
+            // 清空表单
+            document.getElementById('nickname').value = '';
+            document.getElementById('story').value = '';
+            
+            // 显示AI的温暖回应
+            const resultArea = document.getElementById('resultArea');
+            resultArea.innerHTML = `
+                <div class="story-result">
+                    <div style="text-align: center; padding: 20px;">
+                        <div style="font-size: 48px; margin-bottom: 12px;">✧</div>
+                        <div style="font-size: 16px; color: #8B5E3C; line-height: 1.6;">${escapeHtml(aiResponse)}</div>
+                    </div>
+                </div>
+            `;
+            showToast("✨ 你的故事已被收藏");
+        } catch (error) {
+            console.error(error);
+            showToast("发布失败，请重试");
+        }
+    }
+    
+    // 随机抽取故事
+    async function randomStory() {
+        showToast("🎲 正在为你寻找一封信...");
+        
+        try {
+            const { data, error } = await supabase
+                .from('stories')
+                .select('*')
+                .order('created_at', { ascending: false });
+            
+            if (error) throw error;
+            
+            if (!data || data.length === 0) {
+                showToast("还没有故事，成为第一个分享的人吧");
+                return;
+            }
+            
+            const randomIndex = Math.floor(Math.random() * data.length);
+            const story = data[randomIndex];
+            currentStory = story;
+            
+            // 获取AI对故事的理解
+            const aiMessage = await getAIResponse(story.content, 'understand');
+            
+            const resultArea = document.getElementById('resultArea');
+            resultArea.innerHTML = `
+                <div class="story-result">
+                    <div class="story-nickname">
+                        <span>🌙 ${escapeHtml(story.nickname)}</span>
+                        <span>${formatTime(story.created_at)}</span>
+                    </div>
+                    <div class="story-content">${escapeHtml(story.content)}</div>
+                    <div style="font-size: 13px; color: #B8956A; margin-top: 8px; font-style: italic;">✨ ${escapeHtml(aiMessage)}</div>
+                    <div class="story-footer">
+                        <span>💛 ${story.resonate || 0} 次共鸣</span>
+                        <button class="resonate-btn" data-id="${story.id}">共鸣 +1</button>
+                    </div>
+                </div>
+            `;
+            
+            // 绑定共鸣按钮
+            document.querySelector('.resonate-btn')?.addEventListener('click', resonate);
+        } catch (error) {
+            console.error(error);
+            showToast("获取失败，请重试");
+        }
+    }
+    
+    // 共鸣
+    async function resonate() {
+        if (!currentStory) return;
+        
+        try {
+            const newResonate = (currentStory.resonate || 0) + 1;
+            const { error } = await supabase
+                .from('stories')
+                .update({ resonate: newResonate })
+                .eq('id', currentStory.id);
+            
+            if (error) throw error;
+            
+            currentStory.resonate = newResonate;
+            showToast("💛 你的共鸣已传递");
+            
+            // 更新显示
+            const resonateSpan = document.querySelector('.story-footer span');
+            if (resonateSpan) {
+                resonateSpan.innerHTML = `💛 ${newResonate} 次共鸣`;
+            }
+        } catch (error) {
+            console.error(error);
+            showToast("共鸣失败，请重试");
+        }
+    }
+    
+    function formatTime(timestamp) {
+        if (!timestamp) return "刚刚";
+        const date = new Date(timestamp);
+        const now = new Date();
+        const diff = now - date;
+        if (diff < 3600000) return `${Math.floor(diff / 60000)}分钟前`;
+        if (diff < 86400000) return `${Math.floor(diff / 3600000)}小时前`;
+        return `${date.getMonth()+1}/${date.getDate()}`;
+    }
+    
+    function escapeHtml(str) {
+        return str.replace(/[&<>]/g, function(m) {
+            if (m === '&') return '&amp;';
+            if (m === '<') return '&lt;';
+            if (m === '>') return '&gt;';
+            return m;
+        });
+    }
+    
+    function updateCharCount() {
+        const textarea = document.getElementById('story');
+        const span = document.getElementById('charCount');
+        textarea.addEventListener('input', () => {
+            span.innerText = textarea.value.length;
+        });
+    }
+    
+    function setupEventListeners() {
+        document.getElementById('publishBtn').addEventListener('click', publishStory);
+        document.getElementById('randomBtn').addEventListener('click', randomStory);
+    }
+    
+    // 启动
+    init();
+</script>
+</body>
+</html>
