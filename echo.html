@@ -23,7 +23,6 @@
             position: relative;
         }
 
-        /* 手工纸纹理 */
         body::before {
             content: "";
             position: fixed;
@@ -43,7 +42,6 @@
             z-index: 1;
         }
 
-        /* 主卡片 - 手工信纸风格 */
         .paper-card {
             background: #FFFEF7;
             border-radius: 4px;
@@ -52,7 +50,6 @@
             position: relative;
         }
 
-        /* 模拟纸张边缘 */
         .paper-card::before {
             content: "";
             position: absolute;
@@ -63,7 +60,6 @@
             background: repeating-linear-gradient(90deg, #E8D5B5, #E8D5B5 8px, transparent 8px, transparent 16px);
         }
 
-        /* 标题区 - 手写风格 */
         .title-area {
             text-align: center;
             margin-bottom: 28px;
@@ -88,7 +84,6 @@
             padding: 4px 16px;
         }
 
-        /* 装饰小元素 */
         .decoration {
             text-align: center;
             font-size: 24px;
@@ -96,7 +91,6 @@
             margin-bottom: 20px;
         }
 
-        /* 输入框 - 手写风格 */
         .input-group {
             margin-bottom: 20px;
         }
@@ -142,7 +136,6 @@
             margin-top: 6px;
         }
 
-        /* 按钮 - 手绘风格 */
         .btn {
             width: 100%;
             padding: 14px;
@@ -181,7 +174,6 @@
             background: #E8DCC8;
         }
 
-        /* 故事展示卡片 */
         .story-result {
             margin-top: 24px;
             padding: 20px;
@@ -215,7 +207,6 @@
             color: #4A3520;
             margin-bottom: 16px;
             padding-left: 12px;
-            font-style: normal;
         }
 
         .story-footer {
@@ -242,19 +233,6 @@
         .resonate-btn:active {
             background: #D4A76A;
             color: white;
-        }
-
-        .empty-state {
-            text-align: center;
-            padding: 40px 20px;
-            color: #B8A07A;
-            font-family: 'KaiTi', cursive;
-        }
-
-        .loading {
-            text-align: center;
-            padding: 40px;
-            color: #B8A07A;
         }
 
         .divider {
@@ -303,6 +281,12 @@
             margin-top: 20px;
             font-family: 'KaiTi', cursive;
         }
+
+        .loading {
+            text-align: center;
+            padding: 20px;
+            color: #B8A07A;
+        }
     </style>
 </head>
 <body>
@@ -316,7 +300,6 @@
             ✧ 你的脆弱，有人听见 ✧
         </div>
 
-        <!-- 发布区域 -->
         <div class="input-group">
             <label>🌙 你的名字（匿名）</label>
             <input type="text" id="nickname" placeholder="比如：失眠的星星、一只流浪猫" maxlength="20">
@@ -334,10 +317,8 @@
             <div class="divider-line"></div>
         </div>
 
-        <!-- 随机抽取区域 -->
         <button class="btn btn-secondary" id="randomBtn">🎲 拾起一封信 🎲</button>
 
-        <!-- 展示区域 -->
         <div id="resultArea"></div>
     </div>
     <div class="footer-note">
@@ -348,80 +329,20 @@
 <div id="toast" class="toast-message"></div>
 
 <script>
-    // ==================== Supabase 配置 ====================
+    // Supabase 配置
     const SUPABASE_URL = "https://zzupfasatdsdfkugkdpw.supabase.co";
     const SUPABASE_ANON_KEY = "sb_publishable_9ChlMMnPSHZERismpzmiOQ_bbs6dFdn";
-    const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-    
-    // DeepSeek API
-    const DEEPSEEK_API_KEY = "sk-b3f799ba296543598b043f3d4ddaee14";
-    const API_URL = "https://api.deepseek.com/v1/chat/completions";
+    const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
     
     let currentStory = null;
     
-    // ==================== 初始化 ====================
-    function init() {
-        setupEventListeners();
-        updateCharCount();
-        // 测试数据库连接
-        testConnection();
-    }
-    
-    async function testConnection() {
-        try {
-            const { error } = await supabase.from('stories').select('count', { count: 'exact', head: true });
-            if (error) {
-                console.log("数据库连接测试失败，请确保已创建 stories 表");
-            } else {
-                console.log("数据库连接成功");
-            }
-        } catch (e) {
-            console.log("连接测试出错");
-        }
-    }
-    
-    // 显示提示
-    function showToast(message, duration = 2000) {
+    function showToast(message) {
         const toast = document.getElementById('toast');
         toast.textContent = message;
         toast.classList.add('show');
         setTimeout(() => {
             toast.classList.remove('show');
-        }, duration);
-    }
-    
-    // 调用DeepSeek生成回应
-    async function getAIResponse(storyContent, type = 'response') {
-        const systemPrompt = type === 'response' 
-            ? "你是一个温暖、治愈的倾听者。请用温柔、简短的话（30字以内）回应这个人的脆弱故事，表达理解和陪伴。不要评价，不要说教，只说一句温暖的话。像朋友一样。"
-            : "你是一个温暖的倾听者。看到这个人的脆弱故事后，请用一句话（20字以内）表达你的理解和陪伴。不要说教，不要评价，只说一句温柔的话。";
-        
-        try {
-            const response = await fetch(API_URL, {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    "Authorization": `Bearer ${DEEPSEEK_API_KEY}`
-                },
-                body: JSON.stringify({
-                    model: "deepseek-chat",
-                    messages: [
-                        { role: "system", content: systemPrompt },
-                        { role: "user", content: storyContent }
-                    ],
-                    max_tokens: 80,
-                    temperature: 0.8
-                })
-            });
-            
-            if (response.ok) {
-                const data = await response.json();
-                return data.choices[0].message.content;
-            }
-        } catch (error) {
-            console.log("AI回应失败");
-        }
-        return type === 'response' ? "你的故事被收到了。我在这里陪着你。" : "愿你的脆弱被温柔以待。";
+        }, 2000);
     }
     
     // 发布故事
@@ -433,14 +354,10 @@
         if (!content) { showToast("写下你的故事吧"); return; }
         if (content.length > 140) { showToast("故事不能超过140字"); return; }
         
-        showToast("✨ 你的故事正在被聆听...");
+        showToast("✨ 正在寄出...");
         
         try {
-            // 获取AI回应
-            const aiResponse = await getAIResponse(content, 'response');
-            
-            // 保存到Supabase
-            const { error } = await supabase.from('stories').insert([{
+            const { error } = await supabaseClient.from('stories').insert([{
                 id: Date.now().toString(),
                 nickname: nickname.substring(0, 20),
                 content: content,
@@ -449,33 +366,31 @@
             
             if (error) throw error;
             
-            // 清空表单
             document.getElementById('nickname').value = '';
             document.getElementById('story').value = '';
             
-            // 显示AI的温暖回应
             const resultArea = document.getElementById('resultArea');
             resultArea.innerHTML = `
                 <div class="story-result">
                     <div style="text-align: center; padding: 20px;">
                         <div style="font-size: 48px; margin-bottom: 12px;">✧</div>
-                        <div style="font-size: 16px; color: #8B5E3C; line-height: 1.6;">${escapeHtml(aiResponse)}</div>
+                        <div style="font-size: 16px; color: #8B5E3C; line-height: 1.6;">你的故事已被收藏。它会成为另一个人的安慰。</div>
                     </div>
                 </div>
             `;
-            showToast("✨ 你的故事已被收藏");
+            showToast("✨ 寄出成功");
         } catch (error) {
             console.error(error);
             showToast("发布失败，请重试");
         }
     }
     
-    // 随机抽取故事
+    // 随机抽取
     async function randomStory() {
-        showToast("🎲 正在为你寻找一封信...");
+        showToast("🎲 正在寻找一封信...");
         
         try {
-            const { data, error } = await supabase
+            const { data, error } = await supabaseClient
                 .from('stories')
                 .select('*')
                 .order('created_at', { ascending: false });
@@ -491,9 +406,6 @@
             const story = data[randomIndex];
             currentStory = story;
             
-            // 获取AI对故事的理解
-            const aiMessage = await getAIResponse(story.content, 'understand');
-            
             const resultArea = document.getElementById('resultArea');
             resultArea.innerHTML = `
                 <div class="story-result">
@@ -502,7 +414,6 @@
                         <span>${formatTime(story.created_at)}</span>
                     </div>
                     <div class="story-content">${escapeHtml(story.content)}</div>
-                    <div style="font-size: 13px; color: #B8956A; margin-top: 8px; font-style: italic;">✨ ${escapeHtml(aiMessage)}</div>
                     <div class="story-footer">
                         <span>💛 ${story.resonate || 0} 次共鸣</span>
                         <button class="resonate-btn" data-id="${story.id}">共鸣 +1</button>
@@ -510,7 +421,6 @@
                 </div>
             `;
             
-            // 绑定共鸣按钮
             document.querySelector('.resonate-btn')?.addEventListener('click', resonate);
         } catch (error) {
             console.error(error);
@@ -524,7 +434,7 @@
         
         try {
             const newResonate = (currentStory.resonate || 0) + 1;
-            const { error } = await supabase
+            const { error } = await supabaseClient
                 .from('stories')
                 .update({ resonate: newResonate })
                 .eq('id', currentStory.id);
@@ -534,7 +444,6 @@
             currentStory.resonate = newResonate;
             showToast("💛 你的共鸣已传递");
             
-            // 更新显示
             const resonateSpan = document.querySelector('.story-footer span');
             if (resonateSpan) {
                 resonateSpan.innerHTML = `💛 ${newResonate} 次共鸣`;
@@ -577,7 +486,12 @@
         document.getElementById('randomBtn').addEventListener('click', randomStory);
     }
     
-    // 启动
+    // 初始化
+    function init() {
+        setupEventListeners();
+        updateCharCount();
+    }
+    
     init();
 </script>
 </body>
