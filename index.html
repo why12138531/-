@@ -45,7 +45,8 @@
             box-shadow: 0 25px 45px rgba(0, 0, 0, 0.6), 0 0 40px rgba(255, 16, 240, 0.5);
         }
 
-        .geo-container {
+        /* 拥抱图形容器 */
+        .hug-shape {
             position: relative;
             height: 160px;
             margin-bottom: 24px;
@@ -54,93 +55,106 @@
             align-items: center;
         }
 
-        /* 两个主圆 */
-        .circle-left {
+        /* 使用多层不规则圆模拟有机体 */
+        .blob-left, .blob-right {
+            position: absolute;
+            width: 110px;
+            height: 110px;
+            border-radius: 60% 40% 50% 50% / 45% 50% 50% 55%;
+            filter: blur(18px);
+            transition: all 0.1s ease;
+        }
+
+        .blob-left {
+            background: radial-gradient(circle at 30% 40%, #FF10F0, #8800CC);
+            left: 30%;
+            transform: rotate(10deg);
+        }
+
+        .blob-right {
+            background: radial-gradient(circle at 70% 60%, #00FFFF, #0066AA);
+            right: 30%;
+            transform: rotate(-8deg);
+        }
+
+        /* 拥抱时的不规则运动 */
+        .hug-animation .blob-left {
+            animation: organicLeft 5s cubic-bezier(0.4, 0.0, 0.2, 1) forwards;
+        }
+        .hug-animation .blob-right {
+            animation: organicRight 5s cubic-bezier(0.4, 0.0, 0.2, 1) forwards;
+        }
+
+        @keyframes organicLeft {
+            0% {
+                transform: translateX(0) rotate(10deg) scale(1);
+                filter: blur(18px);
+                border-radius: 60% 40% 50% 50% / 45% 50% 50% 55%;
+            }
+            30% {
+                transform: translateX(15px) rotate(15deg) scale(1.2);
+                filter: blur(28px);
+                border-radius: 55% 45% 45% 55% / 50% 40% 60% 50%;
+            }
+            70% {
+                transform: translateX(10px) rotate(8deg) scale(1.15);
+                filter: blur(25px);
+                border-radius: 65% 35% 50% 50% / 40% 55% 45% 60%;
+            }
+            100% {
+                transform: translateX(12px) rotate(12deg) scale(1.1);
+                filter: blur(22px);
+                border-radius: 58% 42% 52% 48% / 47% 53% 47% 53%;
+            }
+        }
+
+        @keyframes organicRight {
+            0% {
+                transform: translateX(0) rotate(-8deg) scale(1);
+                filter: blur(18px);
+                border-radius: 40% 60% 50% 50% / 55% 45% 55% 45%;
+            }
+            30% {
+                transform: translateX(-15px) rotate(-12deg) scale(1.2);
+                filter: blur(28px);
+                border-radius: 45% 55% 55% 45% / 40% 50% 50% 60%;
+            }
+            70% {
+                transform: translateX(-10px) rotate(-6deg) scale(1.15);
+                filter: blur(25px);
+                border-radius: 35% 65% 50% 50% / 60% 40% 60% 40%;
+            }
+            100% {
+                transform: translateX(-12px) rotate(-10deg) scale(1.1);
+                filter: blur(22px);
+                border-radius: 42% 58% 48% 52% / 53% 47% 53% 47%;
+            }
+        }
+
+        /* 中间渗透的光晕 */
+        .bleed-glow {
             position: absolute;
             width: 100px;
             height: 100px;
-            background: radial-gradient(circle, #FF10F0, #8800CC);
+            background: radial-gradient(circle, #FFD700, #FF10F0, transparent);
             border-radius: 50%;
-            filter: blur(16px);
-            opacity: 0.8;
-            left: 35%;
-        }
-
-        .circle-right {
-            position: absolute;
-            width: 100px;
-            height: 100px;
-            background: radial-gradient(circle, #00FFFF, #0066AA);
-            border-radius: 50%;
-            filter: blur(16px);
-            opacity: 0.8;
-            right: 35%;
-        }
-
-        /* 外圈光晕（拥抱时增强） */
-        .outer-glow {
-            position: absolute;
-            width: 140px;
-            height: 140px;
-            border-radius: 50%;
-            background: transparent;
-            box-shadow: 0 0 0 0 rgba(255, 16, 240, 0);
+            filter: blur(32px);
+            opacity: 0.3;
             left: 50%;
             top: 50%;
             transform: translate(-50%, -50%);
+            transition: all 0.2s;
         }
 
-        /* 拥抱动画：大幅移动、放大、模糊 */
-        .hug-animation .circle-left {
-            animation: hugLeftStrong 5s cubic-bezier(0.2, 0.9, 0.4, 1.1) forwards;
-        }
-        .hug-animation .circle-right {
-            animation: hugRightStrong 5s cubic-bezier(0.2, 0.9, 0.4, 1.1) forwards;
-        }
-        .hug-animation .outer-glow {
-            animation: outerPulse 5s ease-out forwards;
+        .hug-animation .bleed-glow {
+            animation: bleed 5s ease-in-out forwards;
         }
 
-        @keyframes hugLeftStrong {
-            0% { transform: translateX(0) scale(1); filter: blur(16px); opacity: 0.8; }
-            40% { transform: translateX(28px) scale(1.5); filter: blur(28px); opacity: 1; }
-            100% { transform: translateX(18px) scale(1.3); filter: blur(24px); opacity: 0.9; }
-        }
-
-        @keyframes hugRightStrong {
-            0% { transform: translateX(0) scale(1); filter: blur(16px); opacity: 0.8; }
-            40% { transform: translateX(-28px) scale(1.5); filter: blur(28px); opacity: 1; }
-            100% { transform: translateX(-18px) scale(1.3); filter: blur(24px); opacity: 0.9; }
-        }
-
-        @keyframes outerPulse {
-            0% { box-shadow: 0 0 0 0 rgba(255, 16, 240, 0); width: 140px; height: 140px; opacity: 0; }
-            20% { box-shadow: 0 0 0 15px rgba(255, 16, 240, 0.6); width: 160px; height: 160px; opacity: 0.8; }
-            60% { box-shadow: 0 0 0 35px rgba(255, 16, 240, 0.3); width: 200px; height: 200px; opacity: 0.5; }
-            100% { box-shadow: 0 0 0 20px rgba(255, 16, 240, 0); width: 180px; height: 180px; opacity: 0; }
-        }
-
-        /* 中心光晕爆发 */
-        .center-glow {
-            position: absolute;
-            width: 80px;
-            height: 80px;
-            background: radial-gradient(circle, #FFD700, #FF10F0, transparent);
-            border-radius: 50%;
-            filter: blur(24px);
-            opacity: 0.5;
-            transition: all 0.1s;
-        }
-
-        .hug-animation .center-glow {
-            animation: glowBurst 5s ease-in-out forwards;
-        }
-
-        @keyframes glowBurst {
-            0% { transform: scale(1); opacity: 0.5; filter: blur(24px); }
-            30% { transform: scale(2.5); opacity: 0.9; filter: blur(16px); }
-            70% { transform: scale(1.8); opacity: 0.7; filter: blur(20px); }
-            100% { transform: scale(1.5); opacity: 0.4; filter: blur(24px); }
+        @keyframes bleed {
+            0% { opacity: 0.2; transform: translate(-50%, -50%) scale(0.8); filter: blur(32px);}
+            40% { opacity: 0.8; transform: translate(-50%, -50%) scale(1.8); filter: blur(28px);}
+            80% { opacity: 0.5; transform: translate(-50%, -50%) scale(1.3); filter: blur(35px);}
+            100% { opacity: 0.3; transform: translate(-50%, -50%) scale(1.1); filter: blur(32px);}
         }
 
         h1 {
@@ -231,7 +245,6 @@
             transition: all 0.3s ease;
         }
 
-        /* 拥抱结束后的文案发光 */
         .quote-glow {
             text-shadow: 0 0 8px #FFD700;
             transform: scale(1.02);
@@ -256,11 +269,10 @@
         🤗 Android 用户：点击后请握紧手机，感受拥抱。
     </div>
 
-    <div class="geo-container" id="geoContainer">
-        <div class="circle-left"></div>
-        <div class="circle-right"></div>
-        <div class="outer-glow"></div>
-        <div class="center-glow"></div>
+    <div class="hug-shape" id="hugShape">
+        <div class="blob-left"></div>
+        <div class="blob-right"></div>
+        <div class="bleed-glow"></div>
     </div>
 
     <h1>虚拟拥抱传送终端</h1>
@@ -276,8 +288,7 @@
 <script>
     let countingDown = false;
     let vibrationAllowed = false;
-    let hugInterval = null;
-    const geoContainer = document.getElementById('geoContainer');
+    const hugShape = document.getElementById('hugShape');
     const statusMsg = document.getElementById('statusMsg');
     const mainContent = document.getElementById('mainContent');
     const card = document.querySelector('.card');
@@ -285,17 +296,16 @@
     function startVibration() {
         if (!vibrationAllowed) return;
         if (navigator.vibrate) {
-            // 5秒沉浸式振动：先轻振，再持续
             navigator.vibrate([200, 50, 4750]);
         }
     }
 
     function startVisualHug() {
         card.classList.add('pulse');
-        geoContainer.classList.add('hug-animation');
+        hugShape.classList.add('hug-animation');
         setTimeout(() => {
             card.classList.remove('pulse');
-            geoContainer.classList.remove('hug-animation');
+            hugShape.classList.remove('hug-animation');
         }, 5000);
     }
 
@@ -305,7 +315,6 @@
             <div class="countdown" id="countdownNum">3</div>
             <div class="small-note">请注视屏幕，感受温暖</div>
         `;
-        // 倒计时跳动
         const countEl = document.getElementById('countdownNum');
         if (countEl) {
             countEl.style.animation = 'none';
