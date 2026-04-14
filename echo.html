@@ -92,7 +92,6 @@
             margin-bottom: 20px;
         }
 
-        /* 剩余次数指示器 */
         .quota-box {
             background: #F0E8D8;
             border-radius: 40px;
@@ -110,6 +109,13 @@
             border-radius: 30px;
             padding: 4px 12px;
             font-weight: bold;
+        }
+
+        .story-count {
+            font-size: 11px;
+            color: #B8A07A;
+            text-align: center;
+            margin-bottom: 16px;
         }
 
         .input-group {
@@ -348,16 +354,6 @@
             margin-top: 4px;
         }
 
-        .badge {
-            display: inline-block;
-            background: #D4A76A;
-            color: white;
-            border-radius: 20px;
-            padding: 2px 8px;
-            font-size: 10px;
-            margin-left: 8px;
-        }
-
         .reply-input-area {
             margin-top: 12px;
             display: flex;
@@ -387,11 +383,11 @@
             ✧ 用故事交换故事 ✧
         </div>
 
-        <!-- 剩余次数指示器 -->
         <div class="quota-box">
-            <span>📮 今日可抽取次数</span>
+            <span>📮 今日可交换次数</span>
             <span class="quota-number" id="quotaCount">0</span>
         </div>
+        <div class="story-count" id="storyCount">📖 故事池中暂无其他故事</div>
 
         <div class="input-group">
             <label>🌙 你的名字（匿名）</label>
@@ -414,7 +410,6 @@
 
         <div id="resultArea"></div>
 
-        <!-- 我的故事箱 -->
         <div class="my-stories" id="myStoriesArea" style="display: none;">
             <div class="my-stories-title">
                 <span>📦 我的故事箱</span>
@@ -424,44 +419,41 @@
         </div>
     </div>
     <div class="footer-note">
-        💛 分享一个故事，获得一次交换的机会。<br>
-        📮 每次交换会随机看到别人的故事，你也可以匿名回信。
+        💛 分享一个故事，获得一次交换机会。<br>
+        📮 每次交换会随机看到别人的故事，不会抽到自己。
     </div>
 </div>
 
 <div id="toast" class="toast-message"></div>
 
 <script>
-    // Supabase 配置
     const SUPABASE_URL = "https://zzupfasatdsdfkugkdpw.supabase.co";
     const SUPABASE_ANON_KEY = "sb_publishable_9ChlMMnPSHZERismpzmiOQ_bbs6dFdn";
     const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
     
-    // 本地存储 key
     const STORAGE_USER_ID = "echo_user_id";
     const STORAGE_QUOTA = "echo_quota";
     const STORAGE_MY_STORIES = "echo_my_stories";
     
     let currentUserId = null;
     let currentStory = null;
-    let quota = 0;  // 剩余抽取次数
+    let quota = 0;
     let myStories = [];
+    let myStoryIds = [];
     
-    // ==================== 初始化 ====================
     async function init() {
         loadUserId();
         await loadMyStories();
         await updateQuotaDisplay();
+        await updateStoryCount();
         setupEventListeners();
         updateCharCount();
-        // 显示我的故事箱（如果有故事）
         if (myStories.length > 0) {
             document.getElementById('myStoriesArea').style.display = 'block';
             renderMyStories();
         }
     }
     
-    // 用户ID（基于 localStorage）
     function loadUserId() {
         let userId = localStorage.getItem(STORAGE_USER_ID);
         if (!userId) {
@@ -469,60 +461,56 @@
             localStorage.setItem(STORAGE_USER_ID, userId);
         }
         currentUserId = userId;
+        myStoryIds = JSON.parse(localStorage.getItem(STORAGE_MY_STORIES) || '[]');
     }
     
-    // 加载我的故事（从 localStorage 记录 ID，再从数据库拉取）
     async function loadMyStories() {
-        const storedIds = localStorage.getItem(STORAGE_MY_STORIES);
-        const storyIds = storedIds ? JSON.parse(storedIds) : [];
-        
-        if (storyIds.length === 0) {
+        if (myStoryIds.length === 0) {
             myStories = [];
             return;
         }
-        
         try {
             const { data, error } = await supabaseClient
                 .from('stories')
                 .select('*')
-                .in('id', storyIds)
+                .in('id', myStoryIds)
                 .order('created_at', { ascending: false });
-            
-            if (!error && data) {
-                myStories = data;
-                localStorage.setItem(STORAGE_MY_STORIES, JSON.stringify(myStories.map(s => s.id)));
-            }
-        } catch (e) {
-            console.log("加载我的故事失败");
-        }
+            if (!error && data) myStories = data;
+        } catch (e) {}
     }
     
-    // 保存故事ID到本地
     function saveStoryId(storyId) {
-        const storedIds = localStorage.getItem(STORAGE_MY_STORIES);
-        let ids = storedIds ? JSON.parse(storedIds) : [];
-        if (!ids.includes(storyId)) {
-            ids.unshift(storyId);
-            if (ids.length > 20) ids = ids.slice(0, 20);
-            localStorage.setItem(STORAGE_MY_STORIES, JSON.stringify(ids));
+        if (!myStoryIds.includes(storyId)) {
+            myStoryIds.unshift(storyId);
+            if (myStoryIds.length > 20) myStoryIds = myStoryIds.slice(0, 20);
+            localStorage.setItem(STORAGE_MY_STORIES, JSON.stringify(myStoryIds));
         }
     }
     
-    // 更新剩余次数显示
+    async function updateStoryCount() {
+        try {
+            const { count, error } = await supabaseClient
+                .from('stories')
+                .select('*', { count: 'exact', head: true });
+            if (!error) {
+                const otherCount = count - myStoryIds.length;
+                const text = otherCount > 0 ? `📖 故事池中有 ${otherCount} 个其他故事` : '📖 故事池中暂无其他故事';
+                document.getElementById('storyCount').innerHTML = text;
+            }
+        } catch (e) {}
+    }
+    
     async function updateQuotaDisplay() {
         let storedQuota = localStorage.getItem(STORAGE_QUOTA);
         let lastDate = localStorage.getItem('echo_last_date');
         const today = new Date().toDateString();
-        
         if (lastDate !== today) {
-            // 新的一天，重置次数（分享一次得一次，初始0）
             quota = 0;
             localStorage.setItem(STORAGE_QUOTA, quota);
             localStorage.setItem('echo_last_date', today);
         } else {
             quota = parseInt(storedQuota) || 0;
         }
-        
         document.getElementById('quotaCount').innerText = quota;
         const randomBtn = document.getElementById('randomBtn');
         if (quota > 0) {
@@ -534,52 +522,41 @@
         }
     }
     
-    // 增加抽取次数（分享故事后获得）
     function addQuota() {
         quota++;
         localStorage.setItem(STORAGE_QUOTA, quota);
         document.getElementById('quotaCount').innerText = quota;
-        const randomBtn = document.getElementById('randomBtn');
-        randomBtn.disabled = false;
-        randomBtn.style.opacity = '1';
+        document.getElementById('randomBtn').disabled = false;
+        document.getElementById('randomBtn').style.opacity = '1';
         showToast("✨ 获得一次交换机会");
     }
     
-    // 消耗抽取次数
     function consumeQuota() {
         if (quota <= 0) return false;
         quota--;
         localStorage.setItem(STORAGE_QUOTA, quota);
         document.getElementById('quotaCount').innerText = quota;
         if (quota === 0) {
-            const randomBtn = document.getElementById('randomBtn');
-            randomBtn.disabled = true;
-            randomBtn.style.opacity = '0.5';
+            document.getElementById('randomBtn').disabled = true;
+            document.getElementById('randomBtn').style.opacity = '0.5';
         }
         return true;
     }
     
-    // 显示提示
     function showToast(message) {
         const toast = document.getElementById('toast');
         toast.textContent = message;
         toast.classList.add('show');
-        setTimeout(() => {
-            toast.classList.remove('show');
-        }, 2000);
+        setTimeout(() => toast.classList.remove('show'), 2000);
     }
     
-    // 发布故事
     async function publishStory() {
         const nickname = document.getElementById('nickname').value.trim();
         const content = document.getElementById('story').value.trim();
-        
         if (!nickname) { showToast("给自己取个名字吧"); return; }
         if (!content) { showToast("写下你的故事吧"); return; }
         if (content.length > 140) { showToast("故事不能超过140字"); return; }
-        
         showToast("✨ 正在分享...");
-        
         try {
             const newStory = {
                 id: Date.now().toString(),
@@ -587,177 +564,93 @@
                 content: content,
                 resonate: 0
             };
-            
             const { error } = await supabaseClient.from('stories').insert([newStory]);
-            
             if (error) throw error;
-            
-            // 保存到我的故事
             saveStoryId(newStory.id);
             myStories.unshift(newStory);
-            
-            // 清空表单
             document.getElementById('nickname').value = '';
             document.getElementById('story').value = '';
-            
-            // 获得一次交换机会
             addQuota();
-            
-            // 显示我的故事箱
+            await updateStoryCount();
             if (myStories.length > 0) {
                 document.getElementById('myStoriesArea').style.display = 'block';
                 renderMyStories();
             }
-            
-            // 清空结果区域，显示成功
             const resultArea = document.getElementById('resultArea');
-            resultArea.innerHTML = `
-                <div class="story-result">
-                    <div style="text-align: center; padding: 20px;">
-                        <div style="font-size: 48px; margin-bottom: 12px;">✧</div>
-                        <div style="font-size: 16px; color: #8B5E3C; line-height: 1.6;">你的故事已被收藏。<br>获得了1次交换机会。</div>
-                    </div>
-                </div>
-            `;
+            resultArea.innerHTML = `<div class="story-result"><div style="text-align: center; padding: 20px;"><div style="font-size: 48px; margin-bottom: 12px;">✧</div><div style="font-size: 16px; color: #8B5E3C;">你的故事已被收藏。<br>获得了1次交换机会。</div></div></div>`;
         } catch (error) {
             console.error(error);
             showToast("分享失败，请重试");
         }
     }
     
-    // 随机交换故事
     async function exchangeStory() {
-        if (quota <= 0) {
-            showToast("没有交换机会了，分享一个故事可以获得机会");
-            return;
-        }
-        
+        if (quota <= 0) { showToast("没有交换机会了，分享一个故事可以获得机会"); return; }
         showToast("🎲 正在寻找一个故事...");
-        
         try {
-            const { data, error } = await supabaseClient
-                .from('stories')
-                .select('*')
-                .order('created_at', { ascending: false });
-            
+            // 关键修改：排除自己的故事
+            let query = supabaseClient.from('stories').select('*');
+            if (myStoryIds.length > 0) {
+                query = query.not('id', 'in', `(${myStoryIds.map(id => `'${id}'`).join(',')})`);
+            }
+            const { data, error } = await query;
             if (error) throw error;
-            
-            if (!data || data.length === 0) {
-                showToast("还没有故事，成为第一个分享的人吧");
+            const otherStories = data || [];
+            if (otherStories.length === 0) {
+                showToast("暂时没有其他故事，请稍后再来交换");
                 return;
             }
-            
-            // 消耗一次机会
-            consumeQuota();
-            
-            const randomIndex = Math.floor(Math.random() * data.length);
-            const story = data[randomIndex];
+            if (!consumeQuota()) return;
+            const randomIndex = Math.floor(Math.random() * otherStories.length);
+            const story = otherStories[randomIndex];
             currentStory = story;
-            
             const resultArea = document.getElementById('resultArea');
             resultArea.innerHTML = `
                 <div class="story-result">
-                    <div class="story-nickname">
-                        <span>🌙 ${escapeHtml(story.nickname)}</span>
-                        <span>${formatTime(story.created_at)}</span>
-                    </div>
+                    <div class="story-nickname"><span>🌙 ${escapeHtml(story.nickname)}</span><span>${formatTime(story.created_at)}</span></div>
                     <div class="story-content">${escapeHtml(story.content)}</div>
                     <div class="story-footer">
-                        <div>
-                            <span>💛 ${story.resonate || 0} 次共鸣</span>
-                            <button class="resonate-btn" data-id="${story.id}">共鸣 +1</button>
-                        </div>
+                        <div><span>💛 ${story.resonate || 0} 次共鸣</span><button class="resonate-btn" data-id="${story.id}">共鸣 +1</button></div>
                         <button class="reply-btn" id="showReplyBtn">📝 匿名回信</button>
                     </div>
-                    <div id="replyArea" class="hidden">
-                        <div class="reply-input-area">
-                            <input type="text" id="replyContent" placeholder="写一句安慰的话...（匿名）" maxlength="60">
-                            <button class="btn-small" id="sendReplyBtn" style="background: #D4A76A; color: white;">发送</button>
-                        </div>
-                    </div>
-                </div>
-            `;
-            
-            // 绑定共鸣按钮
+                    <div id="replyArea" class="hidden"><div class="reply-input-area"><input type="text" id="replyContent" placeholder="写一句安慰的话...（匿名）" maxlength="60"><button class="btn-small" id="sendReplyBtn" style="background: #D4A76A; color: white;">发送</button></div></div>
+                </div>`;
             document.querySelector('.resonate-btn')?.addEventListener('click', () => resonate(story.id));
-            
-            // 绑定回信按钮
             const showReplyBtn = document.getElementById('showReplyBtn');
             const replyArea = document.getElementById('replyArea');
-            showReplyBtn?.addEventListener('click', () => {
-                replyArea.classList.toggle('hidden');
-            });
-            
+            showReplyBtn?.addEventListener('click', () => replyArea.classList.toggle('hidden'));
             const sendReplyBtn = document.getElementById('sendReplyBtn');
-            if (sendReplyBtn) {
-                sendReplyBtn.addEventListener('click', async () => {
-                    const replyContent = document.getElementById('replyContent').value.trim();
-                    if (!replyContent) { showToast("写点什么吧"); return; }
-                    
-                    // 存储回信（单独的表，这里简化，只弹提示并保存到本地记录）
-                    showToast("💌 回信已匿名送出");
-                    document.getElementById('replyContent').value = '';
-                    replyArea.classList.add('hidden');
-                    
-                    // 可选：将回信存储到另一个表，这里先省略
-                });
-            }
+            if (sendReplyBtn) sendReplyBtn.addEventListener('click', async () => {
+                const replyContent = document.getElementById('replyContent').value.trim();
+                if (!replyContent) { showToast("写点什么吧"); return; }
+                showToast("💌 回信已匿名送出");
+                document.getElementById('replyContent').value = '';
+                replyArea.classList.add('hidden');
+            });
         } catch (error) {
             console.error(error);
             showToast("获取失败，请重试");
         }
     }
     
-    // 共鸣
     async function resonate(storyId) {
         try {
-            const { data, error: fetchError } = await supabaseClient
-                .from('stories')
-                .select('resonate')
-                .eq('id', storyId)
-                .single();
-            
+            const { data, error: fetchError } = await supabaseClient.from('stories').select('resonate').eq('id', storyId).single();
             if (fetchError) throw fetchError;
-            
             const newResonate = (data.resonate || 0) + 1;
-            const { error } = await supabaseClient
-                .from('stories')
-                .update({ resonate: newResonate })
-                .eq('id', storyId);
-            
+            const { error } = await supabaseClient.from('stories').update({ resonate: newResonate }).eq('id', storyId);
             if (error) throw error;
-            
             showToast("💛 你的共鸣已传递");
-            
-            // 更新当前显示
             const resonateSpan = document.querySelector('.story-footer span');
-            if (resonateSpan) {
-                resonateSpan.innerHTML = `💛 ${newResonate} 次共鸣`;
-            }
-        } catch (error) {
-            console.error(error);
-            showToast("共鸣失败，请重试");
-        }
+            if (resonateSpan) resonateSpan.innerHTML = `💛 ${newResonate} 次共鸣`;
+        } catch (error) { showToast("共鸣失败，请重试"); }
     }
     
-    // 渲染我的故事箱
     function renderMyStories() {
         const container = document.getElementById('myStoriesList');
-        if (myStories.length === 0) {
-            container.innerHTML = '<div style="color: #B8A07A; text-align: center; padding: 20px;">还没有分享过故事</div>';
-            return;
-        }
-        
-        container.innerHTML = myStories.slice(0, 5).map(story => `
-            <div class="story-item">
-                <div>${escapeHtml(story.content.substring(0, 60))}${story.content.length > 60 ? '...' : ''}</div>
-                <div class="date">${formatTime(story.created_at)} · 💛 ${story.resonate || 0} 次共鸣</div>
-            </div>
-        `).join('');
-        
-        if (myStories.length > 5) {
-            container.innerHTML += '<div style="text-align: center; font-size: 11px; color: #B8A07A;">只显示最近5条</div>';
-        }
+        if (myStories.length === 0) { container.innerHTML = '<div style="color: #B8A07A; text-align: center; padding: 20px;">还没有分享过故事</div>'; return; }
+        container.innerHTML = myStories.slice(0, 5).map(story => `<div class="story-item"><div>${escapeHtml(story.content.substring(0, 60))}${story.content.length > 60 ? '...' : ''}</div><div class="date">${formatTime(story.created_at)} · 💛 ${story.resonate || 0} 次共鸣</div></div>`).join('');
+        if (myStories.length > 5) container.innerHTML += '<div style="text-align: center; font-size: 11px; color: #B8A07A;">只显示最近5条</div>';
     }
     
     function formatTime(timestamp) {
@@ -770,30 +663,12 @@
         return `${date.getMonth()+1}/${date.getDate()}`;
     }
     
-    function escapeHtml(str) {
-        return str.replace(/[&<>]/g, function(m) {
-            if (m === '&') return '&amp;';
-            if (m === '<') return '&lt;';
-            if (m === '>') return '&gt;';
-            return m;
-        });
-    }
-    
-    function updateCharCount() {
-        const textarea = document.getElementById('story');
-        const span = document.getElementById('charCount');
-        textarea.addEventListener('input', () => {
-            span.innerText = textarea.value.length;
-        });
-    }
-    
+    function escapeHtml(str) { return str.replace(/[&<>]/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[m])); }
+    function updateCharCount() { document.getElementById('story').addEventListener('input', () => document.getElementById('charCount').innerText = document.getElementById('story').value.length); }
     function setupEventListeners() {
         document.getElementById('publishBtn').addEventListener('click', publishStory);
         document.getElementById('randomBtn').addEventListener('click', exchangeStory);
-        document.getElementById('toggleMyStoriesBtn')?.addEventListener('click', () => {
-            const area = document.getElementById('myStoriesArea');
-            area.style.display = area.style.display === 'none' ? 'block' : 'none';
-        });
+        document.getElementById('toggleMyStoriesBtn')?.addEventListener('click', () => { const a = document.getElementById('myStoriesArea'); a.style.display = a.style.display === 'none' ? 'block' : 'none'; });
     }
     
     init();
