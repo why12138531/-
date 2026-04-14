@@ -64,8 +64,13 @@
         .quota-number { background: #D4A76A; color: white; border-radius: 30px; padding: 4px 12px; font-weight: bold; }
         .input-group { margin-bottom: 20px; }
         .input-group label { display: block; font-size: 13px; color: #8B5E3C; margin-bottom: 8px; font-family: 'KaiTi', cursive; }
-        .input-group input, .input-group textarea {
-            width: 100%;
+        .nickname-wrapper {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+        .nickname-wrapper input {
+            flex: 1;
             background: #FFFCF5;
             border: 1px solid #E0D0B8;
             border-radius: 12px;
@@ -75,8 +80,32 @@
             color: #4A3520;
             outline: none;
         }
-        .input-group input:focus, .input-group textarea:focus { border-color: #D4A76A; box-shadow: 0 0 0 2px rgba(212, 167, 106, 0.2); }
-        .input-group textarea { resize: none; height: 100px; line-height: 1.6; }
+        .random-name-btn {
+            background: #E8D5B5;
+            border: 1px solid #D4A76A;
+            border-radius: 30px;
+            padding: 8px 16px;
+            font-size: 13px;
+            font-family: 'KaiTi', cursive;
+            color: #8B5E3C;
+            cursor: pointer;
+            white-space: nowrap;
+        }
+        .random-name-btn:active { background: #D4A76A; color: white; }
+        .input-group textarea {
+            width: 100%;
+            background: #FFFCF5;
+            border: 1px solid #E0D0B8;
+            border-radius: 12px;
+            padding: 12px 16px;
+            font-size: 15px;
+            font-family: 'Segoe UI', 'KaiTi', monospace;
+            color: #4A3520;
+            outline: none;
+            resize: none;
+            height: 100px;
+            line-height: 1.6;
+        }
         .char-count { text-align: right; font-size: 11px; color: #B8A07A; margin-top: 6px; }
         .btn {
             width: 100%;
@@ -155,8 +184,18 @@
         </div>
         <div class="decoration">✧ 你的脆弱，会有回音 ✧</div>
         <div class="quota-box"><span>📮 今日可交换次数</span><span class="quota-number" id="quotaCount">0</span></div>
-        <div class="input-group"><label>🌙 你的名字（匿名）</label><input type="text" id="nickname" placeholder="比如：失眠的星星、一只流浪猫" maxlength="20"></div>
-        <div class="input-group"><label>📝 你的故事</label><textarea id="story" placeholder="写下你的一次脆弱时刻...（140字以内）" maxlength="140"></textarea><div class="char-count"><span id="charCount">0</span>/140</div></div>
+        <div class="input-group">
+            <label>🌙 你的名字（匿名）</label>
+            <div class="nickname-wrapper">
+                <input type="text" id="nickname" placeholder="比如：失眠的星星、一只流浪猫" maxlength="20">
+                <button type="button" class="random-name-btn" id="randomNameBtn">🎲 随机生成</button>
+            </div>
+        </div>
+        <div class="input-group">
+            <label>📝 你的故事</label>
+            <textarea id="story" placeholder="写下你的一次脆弱时刻...（140字以内）" maxlength="140"></textarea>
+            <div class="char-count"><span id="charCount">0</span>/140</div>
+        </div>
         <button class="btn btn-primary" id="publishBtn">✧ 分享故事 ✧</button>
         <div class="divider"><div class="divider-line"></div><div class="divider-text">或</div><div class="divider-line"></div></div>
         <button class="btn btn-secondary" id="randomBtn" disabled>🎲 交换一个故事 🎲</button>
@@ -173,15 +212,116 @@
     const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
     const DEEPSEEK_API_KEY = "sk-b3f799ba296543598b043f3d4ddaee14";
     
-    const STORAGE_USER_ID = "echo_user_id_v2";
-    const STORAGE_QUOTA = "echo_quota_v2";
-    const STORAGE_MY_STORIES = "echo_my_stories_v2";
+    const STORAGE_USER_ID = "echo_user_id_v4";
+    const STORAGE_QUOTA = "echo_quota_v4";
+    const STORAGE_MY_STORIES = "echo_my_stories_v4";
+    const STORAGE_USED_NAMES = "echo_used_names_v4";
+    
+    // ==================== 300个预设昵称库 ====================
+    const NICKNAME_POOL = [
+        // 自然意象 (1-50)
+        "失眠的星星", "迷路的云", "会哭的月亮", "打瞌睡的太阳", "安静的雨",
+        "流浪的风", "孤独的树", "等雪的冬", "迟到的春天", "搁浅的船",
+        "褪色的彩虹", "融化的雪人", "枯萎的玫瑰", "落单的候鸟", "迷途的蝴蝶",
+        "深海里的鱼", "搁浅的鲸", "断线的风筝", "生锈的锚", "沉默的灯塔",
+        "雾里的山", "干涸的河", "荒芜的田", "被遗忘的岛屿", "沉没的船",
+        "破碎的贝壳", "飘零的落叶", "折翼的鸟", "迷路的鹿", "孤独的狼",
+        "冬眠的熊", "迁徙的雁", "搁浅的海豚", "被困的萤火虫", "失声的蝉",
+        "褪色的蝴蝶", "凋零的花", "枯黄的草", "流浪的蒲公英", "无根的浮萍",
+        "随波的落叶", "逆流的鱼", "搁浅的贝壳", "迷失的星辰", "坠落的流星",
+        "熄灭的烛火", "散落的烟灰", "破碎的月光", "残缺的夕阳", "模糊的晨雾",
+        
+        // 情绪状态 (51-100)
+        "失眠患者", "孤独患者", "焦虑患者", "抑郁患者", "社恐患者",
+        "假装快乐", "习惯性沉默", "选择性失忆", "间歇性崩溃", "持续性麻木",
+        "深夜emo", "凌晨破防", "黄昏焦虑", "清晨疲惫", "午后倦怠",
+        "空心病", "微笑抑郁", "高敏感人格", "回避型依恋", "讨好型人格",
+        "电量不足", "信号丢失", "内存已满", "系统卡顿", "程序无响应",
+        "加载中", "缓冲中", "待机中", "休眠中", "死机中",
+        "格式化", "重置中", "恢复出厂", "正在关机", "无法重启",
+        "情绪过载", "感知失调", "记忆错乱", "时间扭曲", "空间迷失",
+        "存在感缺失", "安全感匮乏", "归属感迷失", "价值感崩塌", "意义感消失",
+        "被理解妄想", "被看见渴望", "被需要错觉", "被爱恐惧", "被抛弃预设",
+        
+        // 日常物品 (101-150)
+        "半杯温水", "隔夜茶", "凉掉的咖啡", "化掉的冰淇淋", "融化的巧克力",
+        "空荡荡的杯子", "碎掉的玻璃心", "皱巴巴的纸", "断掉的铅笔芯", "没墨的笔",
+        "没电的手机", "碎屏的ipad", "卡壳的耳机", "断连的蓝牙", "失效的WiFi",
+        "积灰的书", "折角的书页", "脱胶的笔记本", "褪色的照片", "模糊的拍立得",
+        "坏掉的钟表", "停摆的时针", "慢分的手表", "不准的闹钟", "失灵的指南针",
+        "打不开的锁", "生锈的钥匙", "断掉的项链", "松动的纽扣", "脱线的毛衣",
+        "破洞的袜子", "缩水的卫衣", "褪色的T恤", "起球的围巾", "变形的帽子",
+        "空了的钱包", "过期的优惠券", "用尽的香水", "干涸的指甲油", "结块的睫毛膏",
+        "落灰的吉他", "断弦的尤克里里", "积尘的钢琴", "走音的提琴", "破损的鼓面",
+        
+        // 抽象概念 (151-200)
+        "未完成", "进行中", "已暂停", "已终止", "已放弃",
+        "待续", "未完", "待定", "悬而未决", "不了了之",
+        "可能性", "不确定", "也许吧", "算了吧", "就这样吧",
+        "无所谓", "都可以", "随便吧", "你定吧", "都行",
+        "还好吧", "凑合过", "差不多", "勉强能", "刚刚好",
+        "差一点", "几乎要", "差点就", "险些是", "只差一步",
+        "来不及", "赶不上", "错过了", "遗憾了", "算了罢",
+        "就这样", "那然后", "所以呢", "然后呢", "接着呢",
+        "再说吧", "回头聊", "下次见", "改天约", "以后吧",
+        
+        // 动物伙伴 (201-250)
+        "失眠的猫", "孤独的狗", "焦虑的兔子", "抑郁的仓鼠", "社恐的刺猬",
+        "迷路的小鹿", "落单的企鹅", "搁浅的海星", "被困的章鱼", "失群的火烈鸟",
+        "冬眠的蛇", "蜕皮的蝉", "结茧的蚕", "破茧的蝶", "折翼的蜂",
+        "流浪的猫", "被遗弃的狗", "走失的兔子", "被放生的龟", "被圈养的鸟",
+        "笼中的仓鼠", "缸里的金鱼", "池中的锦鲤", "盆里的乌龟", "架上的鹦鹉",
+        "野猫", "流浪狗", "散养鸡", "圈养猪", "耕牛",
+        "看门狗", "捕鼠猫", "牧羊犬", "导盲犬", "警犬",
+        "退役马", "赛鸽", "斗鸡", "观赏鱼", "宠物蛇",
+        
+        // 时间与空间 (251-300)
+        "凌晨三点", "清晨五点", "黄昏六点", "深夜十点", "午夜零点",
+        "黎明之前", "破晓时分", "日出时刻", "日落时分", "夜幕降临",
+        "周一早晨", "周二午后", "周三傍晚", "周四深夜", "周五凌晨",
+        "周六黄昏", "周日午夜", "月末最后一天", "年初第一天", "生日那天",
+        "毕业那年", "离别那天", "重逢那刻", "告别那晚", "相遇那天",
+        "空房间", "走廊尽头", "楼梯转角", "天台边缘", "地下室",
+        "阁楼里", "阳台外", "窗台上", "门口处", "路边摊",
+        "候车室", "候机厅", "候诊室", "候考室", "候场区",
+        "空教室", "旧操场", "废弃游乐场", "停业书店", "关门咖啡馆"
+    ];
     
     let currentUserId = null;
     let currentStory = null;
     let quota = 0;
     let myStories = [];
     let myStoryIds = [];
+    let usedNames = [];
+    
+    function loadUsedNames() {
+        const stored = localStorage.getItem(STORAGE_USED_NAMES);
+        usedNames = stored ? JSON.parse(stored) : [];
+    }
+    
+    function saveUsedNames() {
+        localStorage.setItem(STORAGE_USED_NAMES, JSON.stringify(usedNames));
+    }
+    
+    function generateRandomName() {
+        const availableNames = NICKNAME_POOL.filter(n => !usedNames.includes(n));
+        
+        if (availableNames.length === 0) {
+            usedNames = [];
+            saveUsedNames();
+            const randomIndex = Math.floor(Math.random() * NICKNAME_POOL.length);
+            const newName = NICKNAME_POOL[randomIndex];
+            usedNames.push(newName);
+            saveUsedNames();
+            return newName;
+        }
+        
+        const randomIndex = Math.floor(Math.random() * availableNames.length);
+        const newName = availableNames[randomIndex];
+        usedNames.push(newName);
+        saveUsedNames();
+        return newName;
+    }
     
     async function callDeepSeek(storyContent, type) {
         const systemPrompt = type === 'publish' 
@@ -208,6 +348,7 @@
     
     async function init() {
         loadUserId();
+        loadUsedNames();
         await loadMyStories();
         await updateQuotaDisplay();
         setupEventListeners();
@@ -236,9 +377,9 @@
     
     async function updateQuotaDisplay() {
         let storedQuota = localStorage.getItem(STORAGE_QUOTA);
-        let lastDate = localStorage.getItem('echo_last_date_v2');
+        let lastDate = localStorage.getItem('echo_last_date_v4');
         const today = new Date().toDateString();
-        if (lastDate !== today) { quota = 0; localStorage.setItem(STORAGE_QUOTA, quota); localStorage.setItem('echo_last_date_v2', today); }
+        if (lastDate !== today) { quota = 0; localStorage.setItem(STORAGE_QUOTA, quota); localStorage.setItem('echo_last_date_v4', today); }
         else { quota = parseInt(storedQuota) || 0; }
         document.getElementById('quotaCount').innerText = quota;
         const randomBtn = document.getElementById('randomBtn');
@@ -251,11 +392,13 @@
     function showToast(message) { const toast = document.getElementById('toast'); toast.textContent = message; toast.classList.add('show'); setTimeout(() => toast.classList.remove('show'), 2000); }
     
     async function publishStory() {
-        const nickname = document.getElementById('nickname').value.trim();
+        let nickname = document.getElementById('nickname').value.trim();
         const content = document.getElementById('story').value.trim();
-        if (!nickname) { showToast("给自己取个名字吧"); return; }
+        
+        if (!nickname) { showToast("给自己取个名字吧，或点击随机生成"); return; }
         if (!content) { showToast("写下你的故事吧"); return; }
         if (content.length > 140) { showToast("故事不能超过140字"); return; }
+        
         showToast("✨ 正在分享...");
         try {
             const [aiResponse] = await Promise.all([callDeepSeek(content, 'publish')]);
@@ -277,14 +420,11 @@
         if (quota <= 0) { showToast("没有交换机会了，分享一个故事可以获得机会"); return; }
         showToast("🎲 正在寻找一个故事...");
         try {
-            // 获取所有故事
             const { data: allStories, error } = await supabaseClient.from('stories').select('*');
             if (error) throw error;
-            // 排除自己的故事
             const otherStories = allStories.filter(s => !myStoryIds.includes(s.id));
             if (otherStories.length === 0) { showToast("暂时没有其他故事，请稍后再来交换"); return; }
             if (!consumeQuota()) return;
-            // 随机抽取一个
             const randomIndex = Math.floor(Math.random() * otherStories.length);
             const story = otherStories[randomIndex];
             currentStory = story;
@@ -333,11 +473,18 @@
     }
     function escapeHtml(str) { return str.replace(/[&<>]/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[m])); }
     function updateCharCount() { document.getElementById('story').addEventListener('input', () => document.getElementById('charCount').innerText = document.getElementById('story').value.length); }
+    
     function setupEventListeners() {
         document.getElementById('publishBtn').addEventListener('click', publishStory);
         document.getElementById('randomBtn').addEventListener('click', exchangeStory);
         document.getElementById('toggleMyStoriesBtn')?.addEventListener('click', () => { const a = document.getElementById('myStoriesArea'); a.style.display = a.style.display === 'none' ? 'block' : 'none'; });
+        document.getElementById('randomNameBtn').addEventListener('click', () => {
+            const newName = generateRandomName();
+            document.getElementById('nickname').value = newName;
+            showToast(`✨ 你的新昵称：${newName}`);
+        });
     }
+    
     init();
 </script>
 </body>
