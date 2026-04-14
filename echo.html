@@ -3,15 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>脆弱回音壁 · 故事交换站</title>
+    <title>脆弱回音壁 · AI陪伴版</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
+        * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
             background: #F5F0E8;
             min-height: 100vh;
@@ -22,7 +17,6 @@
             padding: 20px;
             position: relative;
         }
-
         body::before {
             content: "";
             position: fixed;
@@ -34,14 +28,7 @@
             background-size: 24px 24px;
             pointer-events: none;
         }
-
-        .container {
-            max-width: 520px;
-            width: 100%;
-            position: relative;
-            z-index: 1;
-        }
-
+        .container { max-width: 520px; width: 100%; position: relative; z-index: 1; }
         .paper-card {
             background: #FFFEF7;
             border-radius: 4px;
@@ -50,7 +37,6 @@
             position: relative;
             margin-bottom: 16px;
         }
-
         .paper-card::before {
             content: "";
             position: absolute;
@@ -60,38 +46,10 @@
             height: 6px;
             background: repeating-linear-gradient(90deg, #E8D5B5, #E8D5B5 8px, transparent 8px, transparent 16px);
         }
-
-        .title-area {
-            text-align: center;
-            margin-bottom: 28px;
-        }
-
-        .title-area h1 {
-            font-family: 'KaiTi', '华文行书', cursive;
-            font-size: 32px;
-            font-weight: normal;
-            color: #8B5E3C;
-            letter-spacing: 4px;
-            margin-bottom: 8px;
-        }
-
-        .title-area .sub {
-            font-family: 'KaiTi', cursive;
-            font-size: 14px;
-            color: #B8956A;
-            border-top: 1px dashed #E0D0B8;
-            border-bottom: 1px dashed #E0D0B8;
-            display: inline-block;
-            padding: 4px 16px;
-        }
-
-        .decoration {
-            text-align: center;
-            font-size: 24px;
-            color: #D4B896;
-            margin-bottom: 20px;
-        }
-
+        .title-area { text-align: center; margin-bottom: 28px; }
+        .title-area h1 { font-family: 'KaiTi', cursive; font-size: 32px; color: #8B5E3C; letter-spacing: 4px; margin-bottom: 8px; }
+        .title-area .sub { font-family: 'KaiTi', cursive; font-size: 14px; color: #B8956A; border-top: 1px dashed #E0D0B8; border-bottom: 1px dashed #E0D0B8; display: inline-block; padding: 4px 16px; }
+        .decoration { text-align: center; font-size: 24px; color: #D4B896; margin-bottom: 20px; }
         .quota-box {
             background: #F0E8D8;
             border-radius: 40px;
@@ -103,35 +61,10 @@
             font-size: 13px;
             color: #8B5E3C;
         }
-        .quota-number {
-            background: #D4A76A;
-            color: white;
-            border-radius: 30px;
-            padding: 4px 12px;
-            font-weight: bold;
-        }
-
-        .story-count {
-            font-size: 11px;
-            color: #B8A07A;
-            text-align: center;
-            margin-bottom: 16px;
-        }
-
-        .input-group {
-            margin-bottom: 20px;
-        }
-
-        .input-group label {
-            display: block;
-            font-size: 13px;
-            color: #8B5E3C;
-            margin-bottom: 8px;
-            font-family: 'KaiTi', cursive;
-        }
-
-        .input-group input,
-        .input-group textarea {
+        .quota-number { background: #D4A76A; color: white; border-radius: 30px; padding: 4px 12px; font-weight: bold; }
+        .input-group { margin-bottom: 20px; }
+        .input-group label { display: block; font-size: 13px; color: #8B5E3C; margin-bottom: 8px; font-family: 'KaiTi', cursive; }
+        .input-group input, .input-group textarea {
             width: 100%;
             background: #FFFCF5;
             border: 1px solid #E0D0B8;
@@ -141,28 +74,10 @@
             font-family: 'Segoe UI', 'KaiTi', monospace;
             color: #4A3520;
             outline: none;
-            transition: all 0.2s;
         }
-
-        .input-group input:focus,
-        .input-group textarea:focus {
-            border-color: #D4A76A;
-            box-shadow: 0 0 0 2px rgba(212, 167, 106, 0.2);
-        }
-
-        .input-group textarea {
-            resize: none;
-            height: 100px;
-            line-height: 1.6;
-        }
-
-        .char-count {
-            text-align: right;
-            font-size: 11px;
-            color: #B8A07A;
-            margin-top: 6px;
-        }
-
+        .input-group input:focus, .input-group textarea:focus { border-color: #D4A76A; box-shadow: 0 0 0 2px rgba(212, 167, 106, 0.2); }
+        .input-group textarea { resize: none; height: 100px; line-height: 1.6; }
+        .char-count { text-align: right; font-size: 11px; color: #B8A07A; margin-top: 6px; }
         .btn {
             width: 100%;
             padding: 14px;
@@ -170,45 +85,16 @@
             border-radius: 40px;
             font-size: 16px;
             font-family: 'KaiTi', cursive;
-            font-weight: normal;
             cursor: pointer;
-            transition: all 0.2s;
             background: #E8D5B5;
             color: #6B4E2E;
             letter-spacing: 2px;
         }
-
-        .btn-primary {
-            background: #D4A76A;
-            color: white;
-            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
-        }
-
-        .btn-primary:active {
-            transform: scale(0.97);
-            background: #C49658;
-        }
-
-        .btn-secondary {
-            background: #F0E8D8;
-            color: #8B5E3C;
-            border: 1px solid #E0D0B8;
-            margin-top: 12px;
-        }
-
-        .btn-secondary:active {
-            transform: scale(0.97);
-            background: #E8DCC8;
-        }
-
-        .btn-small {
-            width: auto;
-            padding: 8px 16px;
-            font-size: 13px;
-            display: inline-block;
-            margin-top: 0;
-        }
-
+        .btn-primary { background: #D4A76A; color: white; box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1); }
+        .btn-primary:active { transform: scale(0.97); background: #C49658; }
+        .btn-secondary { background: #F0E8D8; color: #8B5E3C; border: 1px solid #E0D0B8; margin-top: 12px; }
+        .btn-secondary:active { transform: scale(0.97); background: #E8DCC8; }
+        .btn-small { width: auto; padding: 8px 16px; font-size: 13px; display: inline-block; margin-top: 0; }
         .story-result {
             margin-top: 24px;
             padding: 20px;
@@ -217,88 +103,24 @@
             border: 1px solid #E8DCC8;
             position: relative;
         }
-
-        .story-result::before {
-            content: "“";
-            position: absolute;
-            top: -8px;
-            left: 12px;
-            font-size: 48px;
-            color: #D4B896;
-            font-family: serif;
+        .story-result::before { content: "“"; position: absolute; top: -8px; left: 12px; font-size: 48px; color: #D4B896; font-family: serif; }
+        .story-nickname { font-size: 12px; color: #B8956A; margin-bottom: 12px; display: flex; justify-content: space-between; }
+        .story-content { font-size: 16px; line-height: 1.7; color: #4A3520; margin-bottom: 16px; padding-left: 12px; }
+        .story-footer { display: flex; justify-content: flex-end; align-items: center; border-top: 1px dashed #E8DCC8; padding-top: 12px; margin-top: 8px; }
+        .resonate-btn { background: transparent; border: 1px solid #D4A76A; color: #D4A76A; padding: 4px 16px; border-radius: 30px; font-size: 12px; cursor: pointer; }
+        .ai-response {
+            background: #F0E8D8;
+            border-radius: 16px;
+            padding: 12px;
+            margin-top: 12px;
+            font-size: 13px;
+            color: #6B4E2E;
+            font-style: italic;
+            border-left: 3px solid #D4A76A;
         }
-
-        .story-nickname {
-            font-size: 12px;
-            color: #B8956A;
-            margin-bottom: 12px;
-            display: flex;
-            justify-content: space-between;
-        }
-
-        .story-content {
-            font-size: 16px;
-            line-height: 1.7;
-            color: #4A3520;
-            margin-bottom: 16px;
-            padding-left: 12px;
-        }
-
-        .story-footer {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-top: 1px dashed #E8DCC8;
-            padding-top: 12px;
-            flex-wrap: wrap;
-            gap: 10px;
-        }
-
-        .resonate-btn {
-            background: transparent;
-            border: 1px solid #D4A76A;
-            color: #D4A76A;
-            padding: 4px 16px;
-            border-radius: 30px;
-            font-size: 12px;
-            cursor: pointer;
-            font-family: inherit;
-            transition: all 0.2s;
-        }
-
-        .resonate-btn:active {
-            background: #D4A76A;
-            color: white;
-        }
-
-        .reply-btn {
-            background: transparent;
-            border: 1px solid #8B5E3C;
-            color: #8B5E3C;
-            padding: 4px 12px;
-            border-radius: 30px;
-            font-size: 11px;
-            cursor: pointer;
-        }
-
-        .divider {
-            display: flex;
-            align-items: center;
-            margin: 24px 0;
-            color: #D4B896;
-            font-size: 12px;
-        }
-
-        .divider-line {
-            flex: 1;
-            height: 1px;
-            background: linear-gradient(90deg, transparent, #E0D0B8, transparent);
-        }
-
-        .divider-text {
-            padding: 0 12px;
-        }
-
+        .divider { display: flex; align-items: center; margin: 24px 0; color: #D4B896; font-size: 12px; }
+        .divider-line { flex: 1; height: 1px; background: linear-gradient(90deg, transparent, #E0D0B8, transparent); }
+        .divider-text { padding: 0 12px; }
         .toast-message {
             position: fixed;
             bottom: 30px;
@@ -315,61 +137,13 @@
             pointer-events: none;
             white-space: nowrap;
         }
-
-        .toast-message.show {
-            opacity: 1;
-        }
-
-        .footer-note {
-            text-align: center;
-            font-size: 11px;
-            color: #C8B898;
-            margin-top: 20px;
-            font-family: 'KaiTi', cursive;
-        }
-
-        .my-stories {
-            margin-top: 20px;
-            border-top: 1px solid #E8DCC8;
-            padding-top: 16px;
-        }
-        .my-stories-title {
-            font-size: 13px;
-            color: #8B5E3C;
-            margin-bottom: 12px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        .story-item {
-            background: #F8F4EC;
-            border-radius: 12px;
-            padding: 10px;
-            margin-bottom: 8px;
-            font-size: 13px;
-        }
-        .story-item .date {
-            font-size: 10px;
-            color: #B8A07A;
-            margin-top: 4px;
-        }
-
-        .reply-input-area {
-            margin-top: 12px;
-            display: flex;
-            gap: 8px;
-        }
-        .reply-input-area input {
-            flex: 1;
-            background: #FFFCF5;
-            border: 1px solid #E0D0B8;
-            border-radius: 20px;
-            padding: 6px 12px;
-            font-size: 12px;
-        }
-        .hidden {
-            display: none;
-        }
+        .toast-message.show { opacity: 1; }
+        .footer-note { text-align: center; font-size: 11px; color: #C8B898; margin-top: 20px; font-family: 'KaiTi', cursive; }
+        .my-stories { margin-top: 20px; border-top: 1px solid #E8DCC8; padding-top: 16px; }
+        .my-stories-title { font-size: 13px; color: #8B5E3C; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; }
+        .story-item { background: #F8F4EC; border-radius: 12px; padding: 10px; margin-bottom: 8px; font-size: 13px; }
+        .story-item .date { font-size: 10px; color: #B8A07A; margin-top: 4px; }
+        .hidden { display: none; }
     </style>
 </head>
 <body>
@@ -377,63 +151,31 @@
     <div class="paper-card">
         <div class="title-area">
             <h1>脆弱回音壁</h1>
-            <div class="sub">匿名 · 真诚 · 不评价</div>
+            <div class="sub">匿名 · 真诚 · AI陪伴</div>
         </div>
-        <div class="decoration">
-            ✧ 用故事交换故事 ✧
-        </div>
-
-        <div class="quota-box">
-            <span>📮 今日可交换次数</span>
-            <span class="quota-number" id="quotaCount">0</span>
-        </div>
-        <div class="story-count" id="storyCount">📖 故事池中暂无其他故事</div>
-
-        <div class="input-group">
-            <label>🌙 你的名字（匿名）</label>
-            <input type="text" id="nickname" placeholder="比如：失眠的星星、一只流浪猫" maxlength="20">
-        </div>
-        <div class="input-group">
-            <label>📝 你的故事</label>
-            <textarea id="story" placeholder="写下你的一次脆弱时刻...&#10;（140字以内）" maxlength="140"></textarea>
-            <div class="char-count"><span id="charCount">0</span>/140</div>
-        </div>
+        <div class="decoration">✧ 你的脆弱，会有回音 ✧</div>
+        <div class="quota-box"><span>📮 今日可交换次数</span><span class="quota-number" id="quotaCount">0</span></div>
+        <div class="input-group"><label>🌙 你的名字（匿名）</label><input type="text" id="nickname" placeholder="比如：失眠的星星、一只流浪猫" maxlength="20"></div>
+        <div class="input-group"><label>📝 你的故事</label><textarea id="story" placeholder="写下你的一次脆弱时刻...（140字以内）" maxlength="140"></textarea><div class="char-count"><span id="charCount">0</span>/140</div></div>
         <button class="btn btn-primary" id="publishBtn">✧ 分享故事 ✧</button>
-
-        <div class="divider">
-            <div class="divider-line"></div>
-            <div class="divider-text">或</div>
-            <div class="divider-line"></div>
-        </div>
-
+        <div class="divider"><div class="divider-line"></div><div class="divider-text">或</div><div class="divider-line"></div></div>
         <button class="btn btn-secondary" id="randomBtn" disabled>🎲 交换一个故事 🎲</button>
-
         <div id="resultArea"></div>
-
-        <div class="my-stories" id="myStoriesArea" style="display: none;">
-            <div class="my-stories-title">
-                <span>📦 我的故事箱</span>
-                <button class="btn-small" id="toggleMyStoriesBtn" style="background: #E8D5B5; padding: 4px 12px;">收起</button>
-            </div>
-            <div id="myStoriesList"></div>
-        </div>
+        <div class="my-stories" id="myStoriesArea" style="display: none;"><div class="my-stories-title"><span>📦 我的故事箱</span><button class="btn-small" id="toggleMyStoriesBtn" style="background: #E8D5B5; padding: 4px 12px;">收起</button></div><div id="myStoriesList"></div></div>
     </div>
-    <div class="footer-note">
-        💛 分享一个故事，获得一次交换机会。<br>
-        📮 每次交换会随机看到别人的故事，不会抽到自己。
-    </div>
+    <div class="footer-note">💛 分享故事 → 获得交换机会 → 看到别人的故事，并获得AI的温暖回应</div>
 </div>
-
 <div id="toast" class="toast-message"></div>
 
 <script>
     const SUPABASE_URL = "https://zzupfasatdsdfkugkdpw.supabase.co";
     const SUPABASE_ANON_KEY = "sb_publishable_9ChlMMnPSHZERismpzmiOQ_bbs6dFdn";
     const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    const DEEPSEEK_API_KEY = "sk-b3f799ba296543598b043f3d4ddaee14";
     
-    const STORAGE_USER_ID = "echo_user_id";
-    const STORAGE_QUOTA = "echo_quota";
-    const STORAGE_MY_STORIES = "echo_my_stories";
+    const STORAGE_USER_ID = "echo_user_id_v2";
+    const STORAGE_QUOTA = "echo_quota_v2";
+    const STORAGE_MY_STORIES = "echo_my_stories_v2";
     
     let currentUserId = null;
     let currentStory = null;
@@ -441,114 +183,72 @@
     let myStories = [];
     let myStoryIds = [];
     
+    async function callDeepSeek(storyContent, type) {
+        const systemPrompt = type === 'publish' 
+            ? "你是一个温暖、治愈的倾听者。请用温柔、简短的话（30字以内）回应这个人的脆弱故事，表达理解和陪伴。不要评价，不要说教，只说一句温暖的话。"
+            : "你是一个温暖的倾听者。看到这个人的脆弱故事后，请用一句话（30字以内）表达你的理解和共情。不要评价，不要建议，只说一句温柔的话。";
+        try {
+            const response = await fetch("https://api.deepseek.com/v1/chat/completions", {
+                method: "POST",
+                headers: { "Content-Type": "application/json", "Authorization": `Bearer ${DEEPSEEK_API_KEY}` },
+                body: JSON.stringify({
+                    model: "deepseek-chat",
+                    messages: [{ role: "system", content: systemPrompt }, { role: "user", content: storyContent }],
+                    max_tokens: 80,
+                    temperature: 0.8
+                })
+            });
+            if (response.ok) {
+                const data = await response.json();
+                return data.choices[0].message.content;
+            }
+        } catch (e) { console.log("AI调用失败"); }
+        return type === 'publish' ? "你的故事被收到了。我在这里陪着你。" : "愿你的脆弱被温柔以待。";
+    }
+    
     async function init() {
         loadUserId();
         await loadMyStories();
         await updateQuotaDisplay();
-        await updateStoryCount();
         setupEventListeners();
         updateCharCount();
-        if (myStories.length > 0) {
-            document.getElementById('myStoriesArea').style.display = 'block';
-            renderMyStories();
-        }
+        if (myStories.length > 0) { document.getElementById('myStoriesArea').style.display = 'block'; renderMyStories(); }
     }
     
     function loadUserId() {
         let userId = localStorage.getItem(STORAGE_USER_ID);
-        if (!userId) {
-            userId = 'user_' + Date.now() + '_' + Math.random().toString(36).substr(2, 8);
-            localStorage.setItem(STORAGE_USER_ID, userId);
-        }
+        if (!userId) { userId = 'user_' + Date.now() + '_' + Math.random().toString(36).substr(2, 8); localStorage.setItem(STORAGE_USER_ID, userId); }
         currentUserId = userId;
         myStoryIds = JSON.parse(localStorage.getItem(STORAGE_MY_STORIES) || '[]');
     }
     
     async function loadMyStories() {
-        if (myStoryIds.length === 0) {
-            myStories = [];
-            return;
-        }
+        if (myStoryIds.length === 0) { myStories = []; return; }
         try {
-            const { data, error } = await supabaseClient
-                .from('stories')
-                .select('*')
-                .in('id', myStoryIds)
-                .order('created_at', { ascending: false });
-            if (!error && data) myStories = data;
+            const { data } = await supabaseClient.from('stories').select('*').in('id', myStoryIds).order('created_at', { ascending: false });
+            if (data) myStories = data;
         } catch (e) {}
     }
     
     function saveStoryId(storyId) {
-        if (!myStoryIds.includes(storyId)) {
-            myStoryIds.unshift(storyId);
-            if (myStoryIds.length > 20) myStoryIds = myStoryIds.slice(0, 20);
-            localStorage.setItem(STORAGE_MY_STORIES, JSON.stringify(myStoryIds));
-        }
-    }
-    
-    async function updateStoryCount() {
-        try {
-            const { count, error } = await supabaseClient
-                .from('stories')
-                .select('*', { count: 'exact', head: true });
-            if (!error) {
-                const otherCount = count - myStoryIds.length;
-                const text = otherCount > 0 ? `📖 故事池中有 ${otherCount} 个其他故事` : '📖 故事池中暂无其他故事';
-                document.getElementById('storyCount').innerHTML = text;
-            }
-        } catch (e) {}
+        if (!myStoryIds.includes(storyId)) { myStoryIds.unshift(storyId); if (myStoryIds.length > 20) myStoryIds = myStoryIds.slice(0, 20); localStorage.setItem(STORAGE_MY_STORIES, JSON.stringify(myStoryIds)); }
     }
     
     async function updateQuotaDisplay() {
         let storedQuota = localStorage.getItem(STORAGE_QUOTA);
-        let lastDate = localStorage.getItem('echo_last_date');
+        let lastDate = localStorage.getItem('echo_last_date_v2');
         const today = new Date().toDateString();
-        if (lastDate !== today) {
-            quota = 0;
-            localStorage.setItem(STORAGE_QUOTA, quota);
-            localStorage.setItem('echo_last_date', today);
-        } else {
-            quota = parseInt(storedQuota) || 0;
-        }
+        if (lastDate !== today) { quota = 0; localStorage.setItem(STORAGE_QUOTA, quota); localStorage.setItem('echo_last_date_v2', today); }
+        else { quota = parseInt(storedQuota) || 0; }
         document.getElementById('quotaCount').innerText = quota;
         const randomBtn = document.getElementById('randomBtn');
-        if (quota > 0) {
-            randomBtn.disabled = false;
-            randomBtn.style.opacity = '1';
-        } else {
-            randomBtn.disabled = true;
-            randomBtn.style.opacity = '0.5';
-        }
+        if (quota > 0) { randomBtn.disabled = false; randomBtn.style.opacity = '1'; }
+        else { randomBtn.disabled = true; randomBtn.style.opacity = '0.5'; }
     }
     
-    function addQuota() {
-        quota++;
-        localStorage.setItem(STORAGE_QUOTA, quota);
-        document.getElementById('quotaCount').innerText = quota;
-        document.getElementById('randomBtn').disabled = false;
-        document.getElementById('randomBtn').style.opacity = '1';
-        showToast("✨ 获得一次交换机会");
-    }
-    
-    function consumeQuota() {
-        if (quota <= 0) return false;
-        quota--;
-        localStorage.setItem(STORAGE_QUOTA, quota);
-        document.getElementById('quotaCount').innerText = quota;
-        if (quota === 0) {
-            document.getElementById('randomBtn').disabled = true;
-            document.getElementById('randomBtn').style.opacity = '0.5';
-        }
-        return true;
-    }
-    
-    function showToast(message) {
-        const toast = document.getElementById('toast');
-        toast.textContent = message;
-        toast.classList.add('show');
-        setTimeout(() => toast.classList.remove('show'), 2000);
-    }
+    function addQuota() { quota++; localStorage.setItem(STORAGE_QUOTA, quota); document.getElementById('quotaCount').innerText = quota; document.getElementById('randomBtn').disabled = false; document.getElementById('randomBtn').style.opacity = '1'; showToast("✨ 获得一次交换机会"); }
+    function consumeQuota() { if (quota <= 0) return false; quota--; localStorage.setItem(STORAGE_QUOTA, quota); document.getElementById('quotaCount').innerText = quota; if (quota === 0) { document.getElementById('randomBtn').disabled = true; document.getElementById('randomBtn').style.opacity = '0.5'; } return true; }
+    function showToast(message) { const toast = document.getElementById('toast'); toast.textContent = message; toast.classList.add('show'); setTimeout(() => toast.classList.remove('show'), 2000); }
     
     async function publishStory() {
         const nickname = document.getElementById('nickname').value.trim();
@@ -558,12 +258,8 @@
         if (content.length > 140) { showToast("故事不能超过140字"); return; }
         showToast("✨ 正在分享...");
         try {
-            const newStory = {
-                id: Date.now().toString(),
-                nickname: nickname.substring(0, 20),
-                content: content,
-                resonate: 0
-            };
+            const [aiResponse] = await Promise.all([callDeepSeek(content, 'publish')]);
+            const newStory = { id: Date.now().toString(), nickname: nickname.substring(0, 20), content: content, resonate: 0 };
             const { error } = await supabaseClient.from('stories').insert([newStory]);
             if (error) throw error;
             saveStoryId(newStory.id);
@@ -571,78 +267,51 @@
             document.getElementById('nickname').value = '';
             document.getElementById('story').value = '';
             addQuota();
-            await updateStoryCount();
-            if (myStories.length > 0) {
-                document.getElementById('myStoriesArea').style.display = 'block';
-                renderMyStories();
-            }
+            if (myStories.length > 0) { document.getElementById('myStoriesArea').style.display = 'block'; renderMyStories(); }
             const resultArea = document.getElementById('resultArea');
-            resultArea.innerHTML = `<div class="story-result"><div style="text-align: center; padding: 20px;"><div style="font-size: 48px; margin-bottom: 12px;">✧</div><div style="font-size: 16px; color: #8B5E3C;">你的故事已被收藏。<br>获得了1次交换机会。</div></div></div>`;
-        } catch (error) {
-            console.error(error);
-            showToast("分享失败，请重试");
-        }
+            resultArea.innerHTML = `<div class="story-result"><div style="text-align: center; padding: 20px;"><div style="font-size: 48px; margin-bottom: 12px;">✧</div><div style="font-size: 16px; color: #8B5E3C; margin-bottom: 12px;">你的故事已被收藏。</div><div class="ai-response">💬 ${escapeHtml(aiResponse)}</div></div></div>`;
+        } catch (error) { showToast("分享失败，请重试"); }
     }
     
     async function exchangeStory() {
         if (quota <= 0) { showToast("没有交换机会了，分享一个故事可以获得机会"); return; }
         showToast("🎲 正在寻找一个故事...");
         try {
-            // 关键修改：排除自己的故事
-            let query = supabaseClient.from('stories').select('*');
-            if (myStoryIds.length > 0) {
-                query = query.not('id', 'in', `(${myStoryIds.map(id => `'${id}'`).join(',')})`);
-            }
-            const { data, error } = await query;
+            // 获取所有故事
+            const { data: allStories, error } = await supabaseClient.from('stories').select('*');
             if (error) throw error;
-            const otherStories = data || [];
-            if (otherStories.length === 0) {
-                showToast("暂时没有其他故事，请稍后再来交换");
-                return;
-            }
+            // 排除自己的故事
+            const otherStories = allStories.filter(s => !myStoryIds.includes(s.id));
+            if (otherStories.length === 0) { showToast("暂时没有其他故事，请稍后再来交换"); return; }
             if (!consumeQuota()) return;
+            // 随机抽取一个
             const randomIndex = Math.floor(Math.random() * otherStories.length);
             const story = otherStories[randomIndex];
             currentStory = story;
+            showToast("🤖 AI 正在生成回应...");
+            const aiResponse = await callDeepSeek(story.content, 'exchange');
             const resultArea = document.getElementById('resultArea');
             resultArea.innerHTML = `
                 <div class="story-result">
                     <div class="story-nickname"><span>🌙 ${escapeHtml(story.nickname)}</span><span>${formatTime(story.created_at)}</span></div>
                     <div class="story-content">${escapeHtml(story.content)}</div>
+                    <div class="ai-response">💬 ${escapeHtml(aiResponse)}</div>
                     <div class="story-footer">
-                        <div><span>💛 ${story.resonate || 0} 次共鸣</span><button class="resonate-btn" data-id="${story.id}">共鸣 +1</button></div>
-                        <button class="reply-btn" id="showReplyBtn">📝 匿名回信</button>
+                        <button class="resonate-btn" data-id="${story.id}">💛 共鸣 (${story.resonate || 0})</button>
                     </div>
-                    <div id="replyArea" class="hidden"><div class="reply-input-area"><input type="text" id="replyContent" placeholder="写一句安慰的话...（匿名）" maxlength="60"><button class="btn-small" id="sendReplyBtn" style="background: #D4A76A; color: white;">发送</button></div></div>
                 </div>`;
             document.querySelector('.resonate-btn')?.addEventListener('click', () => resonate(story.id));
-            const showReplyBtn = document.getElementById('showReplyBtn');
-            const replyArea = document.getElementById('replyArea');
-            showReplyBtn?.addEventListener('click', () => replyArea.classList.toggle('hidden'));
-            const sendReplyBtn = document.getElementById('sendReplyBtn');
-            if (sendReplyBtn) sendReplyBtn.addEventListener('click', async () => {
-                const replyContent = document.getElementById('replyContent').value.trim();
-                if (!replyContent) { showToast("写点什么吧"); return; }
-                showToast("💌 回信已匿名送出");
-                document.getElementById('replyContent').value = '';
-                replyArea.classList.add('hidden');
-            });
-        } catch (error) {
-            console.error(error);
-            showToast("获取失败，请重试");
-        }
+        } catch (error) { showToast("获取失败，请重试"); }
     }
     
     async function resonate(storyId) {
         try {
-            const { data, error: fetchError } = await supabaseClient.from('stories').select('resonate').eq('id', storyId).single();
-            if (fetchError) throw fetchError;
-            const newResonate = (data.resonate || 0) + 1;
-            const { error } = await supabaseClient.from('stories').update({ resonate: newResonate }).eq('id', storyId);
-            if (error) throw error;
+            const { data } = await supabaseClient.from('stories').select('resonate').eq('id', storyId).single();
+            const newResonate = (data?.resonate || 0) + 1;
+            await supabaseClient.from('stories').update({ resonate: newResonate }).eq('id', storyId);
             showToast("💛 你的共鸣已传递");
-            const resonateSpan = document.querySelector('.story-footer span');
-            if (resonateSpan) resonateSpan.innerHTML = `💛 ${newResonate} 次共鸣`;
+            const resonateBtn = document.querySelector('.resonate-btn');
+            if (resonateBtn) resonateBtn.innerHTML = `💛 共鸣 (${newResonate})`;
         } catch (error) { showToast("共鸣失败，请重试"); }
     }
     
@@ -662,7 +331,6 @@
         if (diff < 86400000) return `${Math.floor(diff / 3600000)}小时前`;
         return `${date.getMonth()+1}/${date.getDate()}`;
     }
-    
     function escapeHtml(str) { return str.replace(/[&<>]/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[m])); }
     function updateCharCount() { document.getElementById('story').addEventListener('input', () => document.getElementById('charCount').innerText = document.getElementById('story').value.length); }
     function setupEventListeners() {
@@ -670,7 +338,6 @@
         document.getElementById('randomBtn').addEventListener('click', exchangeStory);
         document.getElementById('toggleMyStoriesBtn')?.addEventListener('click', () => { const a = document.getElementById('myStoriesArea'); a.style.display = a.style.display === 'none' ? 'block' : 'none'; });
     }
-    
     init();
 </script>
 </body>
