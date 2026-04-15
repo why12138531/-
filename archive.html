@@ -1,0 +1,643 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>情绪档案 · 情绪超市</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: #0A0A0A;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-family: 'Courier New', 'Fira Code', 'PingFang SC', monospace;
+            padding: 20px;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        /* ========== 电视雪花故障层 ========== */
+        .snow-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200"><filter id="noise"><feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="3" stitchTiles="stitch"/></filter><rect width="100%" height="100%" filter="url(%23noise)" opacity="0.08"/></svg>');
+            background-repeat: repeat;
+            opacity: 0.35;
+            pointer-events: none;
+            z-index: 10;
+            animation: snowFlicker 4s infinite;
+        }
+
+        @keyframes snowFlicker {
+            0%, 100% { opacity: 0.35; }
+            50% { opacity: 0.28; }
+            95% { opacity: 0.4; }
+            96% { opacity: 0.2; }
+        }
+
+        /* ========== 背景底纹（数据流+监控网格） ========== */
+        body::before {
+            content: "";
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: 
+                repeating-linear-gradient(90deg, rgba(0, 255, 255, 0.04) 0px, rgba(0, 255, 255, 0.04) 1px, transparent 1px, transparent 50px),
+                repeating-linear-gradient(0deg, rgba(255, 94, 0, 0.03) 0px, rgba(255, 94, 0, 0.03) 1px, transparent 1px, transparent 50px);
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        /* ========== 底部数据流 ========== */
+        .data-stream {
+            position: fixed;
+            bottom: 10px;
+            left: 0;
+            width: 100%;
+            height: 30px;
+            overflow: hidden;
+            z-index: 20;
+            pointer-events: none;
+        }
+
+        .stream-text {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            white-space: nowrap;
+            font-family: 'Courier New', monospace;
+            font-size: 10px;
+            color: rgba(0, 255, 255, 0.4);
+            animation: scrollStream 20s linear infinite;
+        }
+
+        @keyframes scrollStream {
+            0% { transform: translateX(100%); }
+            100% { transform: translateX(-100%); }
+        }
+
+        /* ========== 监控红点 ========== */
+        .corner-dot {
+            position: fixed;
+            width: 6px;
+            height: 6px;
+            background: #FF0000;
+            border-radius: 50%;
+            box-shadow: 0 0 6px #FF0000;
+            opacity: 0.8;
+            animation: blink 2s step-end infinite;
+            z-index: 15;
+        }
+        .corner-dot:nth-child(1) { top: 15px; left: 15px; }
+        .corner-dot:nth-child(2) { top: 15px; right: 15px; }
+        .corner-dot:nth-child(3) { bottom: 15px; left: 15px; }
+        .corner-dot:nth-child(4) { bottom: 15px; right: 15px; }
+
+        /* 顶部中央摄像头指示灯 */
+        .cam-led {
+            position: fixed;
+            top: 15px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 8px;
+            height: 8px;
+            background: #FF0000;
+            border-radius: 50%;
+            box-shadow: 0 0 8px #FF0000;
+            animation: blink 1.5s step-end infinite;
+            z-index: 15;
+        }
+
+        @keyframes blink {
+            0%, 100% { opacity: 0.9; }
+            50% { opacity: 0.3; }
+        }
+
+        /* ========== 主容器 + 进入动画 ========== */
+        .container {
+            max-width: 420px;
+            width: 100%;
+            position: relative;
+            z-index: 5;
+            animation: slideUpFade 0.6s ease-out;
+        }
+
+        @keyframes slideUpFade {
+            0% {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            100% {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* ========== 主卡片 ========== */
+        .archive-card {
+            background: rgba(20, 20, 30, 0.85);
+            backdrop-filter: blur(12px);
+            border-radius: 24px;
+            border: 1px solid rgba(0, 255, 255, 0.35);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5), 0 0 20px rgba(0, 255, 255, 0.15);
+            padding: 32px 24px;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.2s;
+        }
+
+        /* 扫描线 */
+        .archive-card::after {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, #00FFFF, #FF5E00, #00FFFF, transparent);
+            animation: scanLine 5s linear infinite;
+            pointer-events: none;
+        }
+
+        @keyframes scanLine {
+            0% { top: 0; }
+            100% { top: 100%; }
+        }
+
+        /* Logo区域 */
+        .logo-area {
+            text-align: center;
+            margin-bottom: 28px;
+        }
+
+        .logo {
+            font-size: 34px;
+            font-family: 'KaiTi', 'Courier New', cursive;
+            background: linear-gradient(135deg, #00FFFF, #FF10F0);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            letter-spacing: 6px;
+            text-shadow: 0 0 10px rgba(0, 255, 255, 0.3);
+        }
+
+        .logo-sub {
+            font-size: 10px;
+            color: #00FFFF;
+            opacity: 0.6;
+            letter-spacing: 3px;
+            margin-top: 6px;
+            font-family: monospace;
+        }
+
+        /* 档案标题 */
+        .archive-title {
+            text-align: center;
+            margin-bottom: 24px;
+            border-bottom: 1px solid rgba(0, 255, 255, 0.2);
+            padding-bottom: 12px;
+        }
+
+        .archive-title h2 {
+            font-size: 18px;
+            color: #FFD700;
+            font-family: monospace;
+            letter-spacing: 3px;
+        }
+
+        .archive-title p {
+            font-size: 10px;
+            color: #666;
+            margin-top: 4px;
+        }
+
+        /* 数据卡片 */
+        .data-card {
+            background: rgba(10, 10, 15, 0.7);
+            border-radius: 16px;
+            padding: 16px;
+            margin-bottom: 16px;
+            border-left: 3px solid;
+            transition: all 0.2s;
+        }
+
+        .data-card:nth-child(1) { border-left-color: #FF5E00; }
+        .data-card:nth-child(2) { border-left-color: #00FFFF; }
+        .data-card:nth-child(3) { border-left-color: #FF10F0; }
+        .data-card:nth-child(4) { border-left-color: #FFD700; }
+
+        .data-label {
+            font-size: 11px;
+            color: #888;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: 10px;
+            font-family: monospace;
+        }
+
+        .data-value {
+            font-size: 34px;
+            font-weight: bold;
+            font-family: monospace;
+        }
+
+        .data-unit {
+            font-size: 12px;
+            margin-left: 4px;
+            color: #888;
+        }
+
+        .data-sub {
+            font-size: 11px;
+            margin-top: 8px;
+            color: #666;
+        }
+
+        /* 资产货币行 */
+        .assets-row {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 8px;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .asset-item {
+            text-align: center;
+            flex: 1;
+            min-width: 65px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 12px;
+            padding: 8px 4px;
+        }
+
+        .asset-icon {
+            font-size: 22px;
+            display: block;
+            margin-bottom: 4px;
+        }
+
+        .asset-value {
+            font-size: 20px;
+            font-weight: bold;
+            font-family: monospace;
+        }
+
+        .asset-label {
+            font-size: 9px;
+            color: #888;
+            margin-top: 2px;
+        }
+
+        /* 最近打卡 */
+        .recent-item {
+            display: flex;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .recent-item:last-child {
+            border-bottom: none;
+        }
+
+        .recent-emotion {
+            font-size: 28px;
+            min-width: 48px;
+            text-align: center;
+        }
+
+        .recent-info {
+            flex: 1;
+            margin-left: 10px;
+        }
+
+        .recent-reason {
+            font-size: 13px;
+            color: #E0E0E0;
+            font-family: monospace;
+        }
+
+        .recent-time {
+            font-size: 10px;
+            color: #666;
+            margin-top: 2px;
+        }
+
+        .recent-stats {
+            font-size: 11px;
+            color: #FFD700;
+            min-width: 80px;
+            text-align: right;
+        }
+
+        /* 共鸣记录 */
+        .resonate-stats {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            margin-top: 4px;
+        }
+
+        .resonate-number {
+            font-size: 32px;
+            font-weight: bold;
+            font-family: monospace;
+            color: #FFD700;
+        }
+
+        /* 按钮 */
+        .btn {
+            width: 100%;
+            padding: 12px;
+            border: none;
+            border-radius: 30px;
+            font-size: 13px;
+            font-family: monospace;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 12px;
+            transition: all 0.15s;
+            letter-spacing: 2px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #00FFFF, #0088AA);
+            color: #0A0A0A;
+            border: 1px solid rgba(0, 255, 255, 0.5);
+        }
+
+        .btn-primary:active {
+            transform: scale(0.98);
+            background: #0088AA;
+        }
+
+        .btn-secondary {
+            background: transparent;
+            border: 1px solid #FF5E00;
+            color: #FF5E00;
+        }
+
+        .btn-secondary:active {
+            background: rgba(255, 94, 0, 0.15);
+            transform: scale(0.98);
+        }
+
+        /* 底部 */
+        .footer-note {
+            text-align: center;
+            font-size: 9px;
+            color: #333;
+            margin-top: 20px;
+            padding-top: 12px;
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        /* ========== 弹窗样式 ========== */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.85);
+            backdrop-filter: blur(5px);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.2s;
+        }
+
+        .modal-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .modal-content {
+            background: #1A1A1A;
+            border: 1px solid #FF5E00;
+            border-radius: 20px;
+            padding: 28px 24px;
+            max-width: 320px;
+            width: 85%;
+            text-align: center;
+            position: relative;
+            animation: modalPop 0.2s ease-out;
+            box-shadow: 0 0 30px rgba(255, 94, 0, 0.2);
+        }
+
+        @keyframes modalPop {
+            0% { transform: scale(0.9); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        .modal-content::before {
+            content: "";
+            position: absolute;
+            top: -2px;
+            left: -2px;
+            right: -2px;
+            bottom: -2px;
+            background: repeating-linear-gradient(45deg, #FF5E00, #FF5E00 4px, transparent 4px, transparent 8px);
+            border-radius: 22px;
+            z-index: -1;
+            opacity: 0.3;
+        }
+
+        .modal-content h3 {
+            color: #FF5E00;
+            font-size: 20px;
+            margin-bottom: 16px;
+            font-family: monospace;
+        }
+
+        .modal-content p {
+            color: #E0E0E0;
+            font-size: 13px;
+            line-height: 1.6;
+            margin-bottom: 20px;
+            text-align: left;
+        }
+
+        .modal-close {
+            background: #FF5E00;
+            border: none;
+            padding: 8px 20px;
+            border-radius: 30px;
+            color: #0A0A0A;
+            font-weight: bold;
+            cursor: pointer;
+            font-family: monospace;
+        }
+
+        .modal-close:active {
+            transform: scale(0.96);
+        }
+    </style>
+</head>
+<body>
+    <!-- 雪花故障层 -->
+    <div class="snow-overlay"></div>
+
+    <!-- 监控红点 -->
+    <div class="corner-dot"></div>
+    <div class="corner-dot"></div>
+    <div class="corner-dot"></div>
+    <div class="corner-dot"></div>
+    <div class="cam-led"></div>
+
+    <!-- 底部数据流 -->
+    <div class="data-stream">
+        <div class="stream-text">
+            [03:47:22] 情绪采集 #H-01 完成 | [03:47:23] 用户信用分更新 +2 | [03:47:25] 检测到焦虑波动 | [03:47:28] 数据上传中... | [03:47:30] 情绪档案同步完成
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="archive-card">
+            <div class="logo-area">
+                <div class="logo">情绪超市</div>
+                <div class="logo-sub">EMOTION MART</div>
+            </div>
+
+            <div class="archive-title">
+                <h2>📋 情绪档案</h2>
+                <p>YOUR EMOTION ARCHIVE</p>
+            </div>
+
+            <!-- 情绪指数 -->
+            <div class="data-card">
+                <div class="data-label">📊 今日情绪指数</div>
+                <div class="data-value" style="color: #FF5E00;">24<span class="data-unit">°C</span></div>
+                <div class="data-sub">当前状态：焦虑 · 轻微波动</div>
+            </div>
+
+            <!-- 资产概览 -->
+            <div class="data-card">
+                <div class="data-label">💰 情绪资产</div>
+                <div class="assets-row">
+                    <div class="asset-item">
+                        <span class="asset-icon">😊</span>
+                        <div class="asset-value" style="color: #FFD700;">128</div>
+                        <div class="asset-label">共情币</div>
+                    </div>
+                    <div class="asset-item">
+                        <span class="asset-icon">🕒</span>
+                        <div class="asset-value" style="color: #00FFFF;">345</div>
+                        <div class="asset-label">注意力分钟</div>
+                    </div>
+                    <div class="asset-item">
+                        <span class="asset-icon">💾</span>
+                        <div class="asset-value" style="color: #FF10F0;">56</div>
+                        <div class="asset-label">记忆币</div>
+                    </div>
+                    <div class="asset-item">
+                        <span class="asset-icon">🎫</span>
+                        <div class="asset-value" style="color: #FFD700;">2</div>
+                        <div class="asset-label">脆弱券</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 最近打卡 -->
+            <div class="data-card">
+                <div class="data-label">📝 最近打卡</div>
+                <div class="recent-item">
+                    <div class="recent-emotion">😊</div>
+                    <div class="recent-info">
+                        <div class="recent-reason">看到很好看的夕阳</div>
+                        <div class="recent-time">2024.04.15 15:30</div>
+                    </div>
+                    <div class="recent-stats">+10 注意力分钟</div>
+                </div>
+                <div class="recent-item">
+                    <div class="recent-emotion">😔</div>
+                    <div class="recent-info">
+                        <div class="recent-reason">加班到很晚，错过末班车</div>
+                        <div class="recent-time">2024.04.14 22:15</div>
+                    </div>
+                    <div class="recent-stats">-5 注意力分钟</div>
+                </div>
+                <div class="recent-item">
+                    <div class="recent-emotion">🥰</div>
+                    <div class="recent-info">
+                        <div class="recent-reason">收到妈妈的包裹</div>
+                        <div class="recent-time">2024.04.13 10:00</div>
+                    </div>
+                    <div class="recent-stats">+15 共情币</div>
+                </div>
+            </div>
+
+            <!-- 共鸣记录 -->
+            <div class="data-card">
+                <div class="data-label">💛 累计共鸣</div>
+                <div class="resonate-stats">
+                    <span class="resonate-number">3</span>
+                    <span class="data-sub" style="margin-top: 0;">次共鸣</span>
+                </div>
+                <div class="data-sub">你已共鸣了 3 个脆弱故事</div>
+            </div>
+
+            <!-- 按钮 -->
+            <button class="btn btn-primary" id="recordBtn">📝 记录此刻情绪</button>
+            <button class="btn btn-secondary" id="aboutBtn">📖 了解情绪超市</button>
+
+            <div class="footer-note">
+                情绪超市 · 概念作品 | 数据为模拟展示
+            </div>
+        </div>
+    </div>
+
+    <!-- 弹窗 -->
+    <div class="modal-overlay" id="aboutModal">
+        <div class="modal-content">
+            <h3>⚠️ 情绪超市</h3>
+            <p>这是一个批判消费社会下青年情绪危机的概念设计作品。<br><br>
+            通过将情绪商品化、工具化、孤独化的讽刺性虚拟商品，构建一个荒诞又引人反思的体验空间。<br><br>
+            视觉传达设计专业 · 毕业设计</p>
+            <button class="modal-close" id="closeModal">关 闭</button>
+        </div>
+    </div>
+
+    <script>
+        // 弹窗逻辑
+        const modal = document.getElementById('aboutModal');
+        const aboutBtn = document.getElementById('aboutBtn');
+        const closeModal = document.getElementById('closeModal');
+
+        aboutBtn.addEventListener('click', () => {
+            modal.classList.add('active');
+        });
+
+        closeModal.addEventListener('click', () => {
+            modal.classList.remove('active');
+        });
+
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) {
+                modal.classList.remove('active');
+            }
+        });
+
+        // 跳转到回音壁
+        document.getElementById('recordBtn').addEventListener('click', function() {
+            window.location.href = 'https://why12138531.github.io/-/echo.html';
+        });
+    </script>
+</body>
+</html>
