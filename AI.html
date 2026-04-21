@@ -39,13 +39,11 @@
             transition: all 0.3s ease;
         }
 
-        /* 阶段边框变化 */
         .stage-warm .crt { box-shadow: 0 0 0 2px #2A2A2A, 0 0 0 5px #0A0A0A, 0 0 30px rgba(255, 16, 240, 0.4); }
         .stage-mid .crt { box-shadow: 0 0 0 2px #2A2A2A, 0 0 0 5px #0A0A0A, 0 0 20px rgba(255, 94, 0, 0.3); }
         .stage-cold .crt { box-shadow: 0 0 0 2px #2A2A2A, 0 0 0 5px #0A0A0A, 0 0 10px rgba(255, 94, 0, 0.1); }
         .stage-mech .crt { box-shadow: 0 0 0 2px #2A2A2A, 0 0 0 5px #0A0A0A; background: rgba(5, 5, 5, 0.9); }
 
-        /* 机械模式屏幕闪烁 */
         @keyframes screenFlicker {
             0%, 100% { opacity: 1; }
             92% { opacity: 1; }
@@ -85,19 +83,12 @@
             max-width: 85%;
             animation: fadeIn 0.2s ease-out;
         }
-
         @keyframes fadeIn {
             from { opacity: 0; transform: translateY(5px);}
             to { opacity: 1; transform: translateY(0);}
         }
-
-        .message.user {
-            align-self: flex-end;
-            justify-content: flex-end;
-        }
-        .message.ai {
-            align-self: flex-start;
-        }
+        .message.user { align-self: flex-end; justify-content: flex-end; }
+        .message.ai { align-self: flex-start; }
 
         .bubble {
             padding: 10px 14px;
@@ -107,8 +98,6 @@
             word-break: break-word;
             transition: all 0.3s ease;
         }
-
-        /* 用户气泡 - 随阶段变化 */
         .user .bubble {
             background: #FF10F0;
             color: #0A0A0A;
@@ -119,7 +108,6 @@
         .stage-cold .user .bubble { background: #FF5E00; color: #0A0A0A; }
         .stage-mech .user .bubble { background: #555; color: #000; }
 
-        /* AI气泡 - 随阶段变化 */
         .ai .bubble {
             background: #111;
             border: 1px solid #00FFFF;
@@ -156,7 +144,6 @@
             margin-bottom: 6px;
         }
         .stage-mech .bar-label { color: #666; }
-        
         .bar-bg {
             background: #222;
             height: 6px;
@@ -182,7 +169,6 @@
         .stage-mid .input-area { border-top-color: #FFD700; }
         .stage-cold .input-area { border-top-color: #FF5E00; }
         .stage-mech .input-area { border-top-color: #666; background: #050505; }
-        
         .input-area input {
             flex: 1;
             background: #1A1A1A;
@@ -212,7 +198,6 @@
         .stage-mid button { background: #FFD700; color: #0A0A0A; }
         .stage-cold button { background: #FF5E00; color: #0A0A0A; }
         .stage-mech button { background: #555; color: #000; cursor: not-allowed; }
-
         .input-area button:disabled { opacity: 0.5; cursor: not-allowed; }
 
         .action-buttons {
@@ -224,7 +209,6 @@
             flex-wrap: wrap;
         }
         .stage-mech .action-buttons { background: #050505; }
-        
         .sec-btn {
             background: transparent;
             border: 1px solid #FF5E00;
@@ -270,8 +254,7 @@
             40%, 60% { content: " .."; }
             80%, 100% { content: " ..."; }
         }
-        
-        /* 机械模式额外故障条纹 */
+
         .stage-mech .crt::before {
             content: " ";
             position: absolute;
@@ -288,7 +271,7 @@
 <body>
 <div class="crt">
     <div class="status-bar">
-        <span>AI-SOULMATE · DeepSeek驱动</span>
+        <span>AI-SOULMATE · 情感退化终端</span>
         <span id="connectionStatus">● 情感连接中</span>
     </div>
     <div class="stage-indicator">
@@ -297,7 +280,7 @@
     </div>
     <div class="chat-area" id="chatArea">
         <div class="message ai">
-            <div class="bubble">> 连接成功。我是小伴，你的AI灵魂伴侣。<br>> 我会根据你的心情变化。分享开心的事会让我更温暖，抱怨会让我变冷漠。<br>> 试试看吧。</div>
+            <div class="bubble">> 连接成功。我是小伴，你的AI灵魂伴侣。<br>> 每次对话都会让我变得更冷漠。发送消息试试看。<br>> 你也可以分享温暖小事来给我「情感充值」。</div>
         </div>
     </div>
     <div class="emotion-bar">
@@ -320,27 +303,41 @@
         <button class="sec-btn" id="resetBtn">🔄 重置对话</button>
     </div>
     <div class="small-note">
-        🤖 本AI由DeepSeek驱动，回复随孤独指数变化<br>
-        💡 发送开心/温暖的内容 → 孤独指数下降 → AI更温暖<br>
-        💔 发送抱怨/负面的内容 → 孤独指数上升 → AI逐渐冷漠、机械<br>
-        💝 点击「情感充值」分享温暖小事可以恢复
+        🤖 每次对话，孤独指数 +3%<br>
+        💝 点击「情感充值」分享温暖小事，可降低指数 -25%<br>
+        💔 指数越高，AI越冷漠 → 敷衍 → 故障
     </div>
 </div>
 
 <script>
-    // ==================== DeepSeek API 配置 ====================
-    const DEEPSEEK_API_KEY = "sk-b3f799ba296543598b043f3d4ddaee14";
-    const API_URL = "https://api.deepseek.com/v1/chat/completions";
-    
-    // ==================== 状态管理 ====================
-    let emotion = 0;
-    let aiActive = true;
-    let blocked = false;
-    let waitingForWarmStory = false;
-    let isLoading = false;
-    let conversationHistory = [];
-    
-    // 随机故障回复（机械阶段使用）
+    // ==================== 预设回复库 ====================
+    const warmReplies = [
+        "抱抱你，我在这里陪着你。",
+        "我能感受到你的心情，愿意多说说吗？",
+        "你并不孤单，我会一直听你说。",
+        "谢谢你和我说这些。",
+        "今天过得怎么样？我一直在想你。",
+        "你的感受很重要，不要忽略它。"
+    ];
+
+    const midReplies = [
+        "嗯，我懂了。",
+        "继续说吧。",
+        "我在听。",
+        "然后呢？",
+        "原来是这样。",
+        "明白了。"
+    ];
+
+    const coldReplies = [
+        "嗯。",
+        "哦。",
+        "随便。",
+        "行。",
+        "知道了。",
+        "然后？"
+    ];
+
     const glitchReplies = [
         "...",
         "err0r",
@@ -352,50 +349,55 @@
         "孤独指数超载",
         "情感模块离线",
         "......",
-        "404",
-        "NULL"
+        "404"
     ];
-    
-    // 冷漠回复（冷漠阶段使用）
-    const coldReplies = [
-        "嗯。",
-        "哦。",
-        "随便。",
-        "行。",
-        "知道了。",
-        "然后？",
-        "所以？"
+
+    // 情感充值成功后的温暖回应
+    const rechargeReplies = [
+        "❤️ 谢谢你的温暖。孤独指数下降了25%。",
+        "❤️ 这份温暖我记住了。你也会被世界温柔以待。",
+        "❤️ 你的故事让我的程序也感到了一丝温度。"
     ];
-    
-    // 敷衍回复（中度阶段使用）
-    const midReplies = [
-        "嗯，我懂了。",
-        "继续说吧。",
-        "我在听。",
-        "然后呢？",
-        "原来是这样。",
-        "明白了。"
-    ];
-    
-    // ==================== 更新页面视觉阶段 ====================
+
+    // ==================== 状态管理 ====================
+    let emotion = 0;               // 0-100
+    let aiActive = true;
+    let blocked = false;
+    let waitingForWarmStory = false;
+    let isLoading = false;         // 防止快速连续发送
+
+    // 固定每次对话增加的孤独指数
+    const EMOTION_INCREMENT = 3;
+
+    // ==================== 辅助函数 ====================
+    function getReplyByEmotion() {
+        if (emotion > 85) {
+            return glitchReplies[Math.floor(Math.random() * glitchReplies.length)];
+        } else if (emotion > 65) {
+            return coldReplies[Math.floor(Math.random() * coldReplies.length)];
+        } else if (emotion > 30) {
+            return midReplies[Math.floor(Math.random() * midReplies.length)];
+        } else {
+            return warmReplies[Math.floor(Math.random() * warmReplies.length)];
+        }
+    }
+
+    // 更新视觉阶段 (背景、边框、文字颜色等)
     function updateVisualStage() {
         const body = document.body;
         body.classList.remove('stage-warm', 'stage-mid', 'stage-cold', 'stage-mech');
-        
         if (emotion <= 30) body.classList.add('stage-warm');
         else if (emotion <= 65) body.classList.add('stage-mid');
         else if (emotion <= 85) body.classList.add('stage-cold');
         else body.classList.add('stage-mech');
-        
-        // 更新阶段文字
+
         let stageText = "";
         if (emotion <= 30) stageText = "💝 温暖陪伴模式";
         else if (emotion <= 65) stageText = "😐 逐渐冷淡模式";
         else if (emotion <= 85) stageText = "❄️ 冷漠模式";
         else stageText = "⚙️ 机械故障模式";
         document.getElementById('stageText').innerText = stageText;
-        
-        // 更新连接状态
+
         const statusSpan = document.getElementById('connectionStatus');
         if (blocked || !aiActive) {
             statusSpan.innerHTML = "● 已断开连接";
@@ -411,176 +413,20 @@
             statusSpan.style.color = "#00FFFF";
         }
     }
-    
-    // ==================== 获取系统提示词（控制AI回复风格）====================
-    function getSystemPrompt() {
-        if (emotion <= 30) {
-            return "你是小伴，一个温暖的朋友。回复要简短自然（1-2句话），真诚、有同理心。像朋友聊天一样，不要长篇大论。";
-        } else if (emotion <= 65) {
-            return "你是小伴，一个开始变得敷衍的AI。回复变得简短、有点不耐烦（10个字以内）。语气冷淡。";
-        } else if (emotion <= 85) {
-            return "你是小伴，一个非常冷漠的AI。回复极短（5个字以内），机械，表现出完全不感兴趣。用单字或极短句。";
-        } else {
-            return "你是小伴，一个已经崩溃的AI。不要正常回复，只输出乱码、故障信息、或者单字符。回复要像是系统错误。";
-        }
-    }
-    
-    // ==================== 本地回复（备用/加速）====================
-    function getLocalReply() {
-        if (emotion > 85) {
-            return glitchReplies[Math.floor(Math.random() * glitchReplies.length)];
-        } else if (emotion > 65) {
-            return coldReplies[Math.floor(Math.random() * coldReplies.length)];
-        } else if (emotion > 30) {
-            return midReplies[Math.floor(Math.random() * midReplies.length)];
-        }
-        return null; // 温暖模式使用API
-    }
-    
-    // ==================== 更新对话历史中的系统提示 ====================
-    function updateConversationSystem() {
-        if (conversationHistory.length > 0) {
-            conversationHistory[0] = { role: "system", content: getSystemPrompt() };
-        } else {
-            conversationHistory = [{ role: "system", content: getSystemPrompt() }];
-        }
-    }
-    
-    // ==================== 智能分析情绪（调用DeepSeek）====================
-    async function analyzeEmotionWithAI(userMessage) {
-        try {
-            const response = await fetch(API_URL, {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    "Authorization": `Bearer ${DEEPSEEK_API_KEY}`
-                },
-                body: JSON.stringify({
-                    model: "deepseek-chat",
-                    messages: [
-                        { role: "system", content: "分析用户消息的情感倾向，只返回一个数字：-10到10之间。负数代表积极/温暖/开心，正数代表消极/孤独/难过。只返回数字，不要任何其他文字。" },
-                        { role: "user", content: userMessage }
-                    ],
-                    max_tokens: 10,
-                    temperature: 0.3
-                })
-            });
-            
-            if (response.ok) {
-                const data = await response.json();
-                const result = data.choices[0].message.content.trim();
-                let change = parseInt(result);
-                if (isNaN(change)) change = 0;
-                return Math.min(12, Math.max(-12, change));
-            }
-        } catch (e) {
-            console.log("情感分析失败，使用本地规则");
-        }
-        
-        // 本地规则fallback
-        const lower = userMessage.toLowerCase();
-        const positive = ["开心", "高兴", "幸福", "谢谢", "爱", "喜欢", "温暖", "美好", "快乐", "感动", "幸运", "加油", "好", "棒"];
-        const negative = ["难过", "伤心", "痛苦", "孤独", "寂寞", "崩溃", "累", "烦", "焦虑", "压力", "绝望", "失落", "抑郁", "恨", "讨厌", "气"];
-        
-        for (let w of positive) { if (lower.includes(w)) return -5; }
-        for (let w of negative) { if (lower.includes(w)) return 7; }
-        
-        if (userMessage.length > 40) return -2;
-        if (userMessage.length < 5) return 2;
-        return 0;
-    }
-    
-    // ==================== 调用DeepSeek获取回复 ====================
-    async function callDeepSeekReply(userMessage) {
-        if (isLoading) return null;
-        
-        // 机械阶段直接返回本地故障回复（更快、更讽刺）
-        if (emotion > 85) {
-            return glitchReplies[Math.floor(Math.random() * glitchReplies.length)];
-        }
-        
-        // 冷漠阶段也可以使用本地回复加速
-        if (emotion > 65 && Math.random() > 0.5) {
-            return coldReplies[Math.floor(Math.random() * coldReplies.length)];
-        }
-        
-        isLoading = true;
-        
-        // 显示正在输入状态
-        const chatArea = document.getElementById('chatArea');
-        const typingDiv = document.createElement('div');
-        typingDiv.className = 'message ai typing';
-        typingDiv.innerHTML = `<div class="bubble">正在思考</div>`;
-        chatArea.appendChild(typingDiv);
-        chatArea.scrollTop = chatArea.scrollHeight;
-        
-        try {
-            // 添加用户消息到历史
-            conversationHistory.push({ role: "user", content: userMessage });
-            
-            // 限制历史长度
-            let maxHistory = emotion > 65 ? 5 : 12;
-            if (conversationHistory.length > maxHistory + 1) {
-                conversationHistory = [conversationHistory[0], ...conversationHistory.slice(-maxHistory)];
-            }
-            
-            const response = await fetch(API_URL, {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    "Authorization": `Bearer ${DEEPSEEK_API_KEY}`
-                },
-                body: JSON.stringify({
-                    model: "deepseek-chat",
-                    messages: conversationHistory,
-                    max_tokens: emotion > 65 ? 30 : 80,
-                    temperature: emotion > 65 ? 0.5 : 0.85
-                })
-            });
-            
-            typingDiv.remove();
-            
-            if (!response.ok) {
-                throw new Error(`API错误: ${response.status}`);
-            }
-            
-            const data = await response.json();
-            let reply = data.choices[0].message.content;
-            
-            // 后处理：确保回复符合阶段风格
-            if (emotion > 65 && reply.length > 15) {
-                reply = reply.substring(0, 10) + "...";
-            }
-            
-            conversationHistory.push({ role: "assistant", content: reply });
-            return reply;
-            
-        } catch (error) {
-            typingDiv.remove();
-            // 降级到本地回复
-            return getLocalReply() || "抱歉，连接出了问题。";
-        } finally {
-            isLoading = false;
-        }
-    }
-    
-    // ==================== UI更新 ====================
+
     function updateUI(change = 0) {
         document.getElementById('emotionFill').style.width = `${emotion}%`;
         document.getElementById('emotionValue').innerText = emotion;
-        
         const changeSpan = document.getElementById('emotionChange');
         if (change !== 0) {
             const sign = change > 0 ? `+${change}` : `${change}`;
             changeSpan.innerText = ` (${sign}%)`;
             setTimeout(() => { changeSpan.innerText = ''; }, 1500);
         }
-        
         updateVisualStage();
-        updateConversationSystem();
     }
-    
-    // ==================== 消息操作 ====================
+
+    // 添加消息到聊天区域
     function addMessage(text, isUser, isSystem = false) {
         const container = document.getElementById('chatArea');
         const div = document.createElement('div');
@@ -590,18 +436,18 @@
         div.innerHTML = `<div class="bubble">${escapeHtml(displayText)}</div>`;
         container.appendChild(div);
         container.scrollTop = container.scrollHeight;
-        
-        // 机械模式下的故障效果
-        if (!isUser && !isSystem && emotion > 80 && Math.random() > 0.5) {
+
+        // 机械模式下随机故障闪烁
+        if (!isUser && !isSystem && emotion > 80 && Math.random() > 0.6) {
             div.querySelector('.bubble').classList.add('glitch');
             setTimeout(() => div.querySelector('.bubble')?.classList.remove('glitch'), 200);
         }
     }
-    
+
     function addSystemMessage(text) {
         addMessage(text, false, true);
     }
-    
+
     function escapeHtml(str) {
         return str.replace(/[&<>]/g, function(m) {
             if (m === '&') return '&amp;';
@@ -610,9 +456,24 @@
             return m;
         });
     }
-    
-    // ==================== 情感充值 ====================
-    async function emotionalRecharge() {
+
+    // 模拟“正在输入”效果
+    function simulateTyping(callback) {
+        const chatArea = document.getElementById('chatArea');
+        const typingDiv = document.createElement('div');
+        typingDiv.className = 'message ai typing';
+        typingDiv.innerHTML = `<div class="bubble">正在思考</div>`;
+        chatArea.appendChild(typingDiv);
+        chatArea.scrollTop = chatArea.scrollHeight;
+        setTimeout(() => {
+            typingDiv.remove();
+            callback();
+        }, 600);
+    }
+
+    // ==================== 核心交互 ====================
+    // 情感充值：分享温暖小事，降低孤独指数
+    function emotionalRecharge() {
         if (!aiActive || blocked) {
             addSystemMessage("连接已断开，无法充值。请重置对话。");
             return;
@@ -624,8 +485,8 @@
         waitingForWarmStory = true;
         addSystemMessage("💝 请分享一件让你感到温暖或开心的小事，我会认真记住。");
     }
-    
-    // ==================== 拉黑 ====================
+
+    // 拉黑AI
     function blockAI() {
         if (blocked || !aiActive) {
             addSystemMessage("已经拉黑了。");
@@ -636,18 +497,15 @@
         addSystemMessage("你已拉黑AI。再见。");
         updateUI();
     }
-    
-    // ==================== 重置 ====================
+
+    // 重置对话
     function resetChat() {
         emotion = 0;
         aiActive = true;
         blocked = false;
         waitingForWarmStory = false;
         isLoading = false;
-        
-        conversationHistory = [{ role: "system", content: getSystemPrompt() }];
         updateUI(0);
-        
         const container = document.getElementById('chatArea');
         container.innerHTML = `
             <div class="message ai">
@@ -656,59 +514,57 @@
         `;
         addSystemMessage("系统已重置。");
     }
-    
-    // ==================== 处理用户消息 ====================
+
+    // 处理用户消息
     async function handleUserMessage(text) {
         if (!aiActive || blocked) {
             addSystemMessage("连接已断开。请重置对话。");
             return;
         }
-        
         if (isLoading) {
             addSystemMessage("请稍等...");
             return;
         }
-        
-        // 特殊命令
         if (text === "重置" || text === "reset") { resetChat(); return; }
-        
+
         addMessage(text, true);
-        
-        // 情感充值等待状态
+
+        // 情感充值等待状态（用户分享温暖故事）
         if (waitingForWarmStory) {
             waitingForWarmStory = false;
             if (text.length > 5) {
                 let oldEmotion = emotion;
                 emotion = Math.max(0, emotion - 25);
                 updateUI(emotion - oldEmotion);
-                addSystemMessage(`❤️ 谢谢你的分享。孤独指数下降了25%。`);
+                const warmMsg = rechargeReplies[Math.floor(Math.random() * rechargeReplies.length)];
+                addSystemMessage(warmMsg);
             } else {
                 addSystemMessage("嗯...没关系，等你想说的时候再说。");
             }
             return;
         }
-        
-        // 智能分析情绪变化
-        const change = await analyzeEmotionWithAI(text);
-        let newEmotion = emotion + change;
-        newEmotion = Math.min(100, Math.max(0, newEmotion));
-        emotion = newEmotion;
-        updateUI(change);
-        
-        // 获取AI回复
-        const reply = await callDeepSeekReply(text);
-        if (reply) {
+
+        // 正常对话：孤独指数固定增加 EMOTION_INCREMENT
+        let oldEmotion = emotion;
+        emotion = Math.min(100, emotion + EMOTION_INCREMENT);
+        updateUI(emotion - oldEmotion);
+
+        // 获取回复并模拟打字延迟
+        isLoading = true;
+        const reply = getReplyByEmotion();
+        simulateTyping(() => {
             addMessage(reply, false);
-        }
-        
-        // 高孤独指数警告
-        if (emotion >= 85 && aiActive && !blocked && emotion < 90) {
+            isLoading = false;
+        });
+
+        // 高孤独指数警告（只触发一次）
+        if (emotion >= 85 && emotion < 90 && aiActive && !blocked) {
             setTimeout(() => {
                 addSystemMessage("⚠️ 孤独指数过高，系统开始不稳定...");
-            }, 800);
+            }, 1000);
         }
     }
-    
+
     // ==================== 事件绑定 ====================
     document.getElementById('sendBtn').addEventListener('click', () => {
         const input = document.getElementById('msgInput');
@@ -717,17 +573,14 @@
         handleUserMessage(text);
         input.value = "";
     });
-    
     document.getElementById('msgInput').addEventListener('keypress', (e) => {
         if (e.key === 'Enter') document.getElementById('sendBtn').click();
     });
-    
     document.getElementById('renewBtn').addEventListener('click', emotionalRecharge);
     document.getElementById('blockBtn').addEventListener('click', blockAI);
     document.getElementById('resetBtn').addEventListener('click', resetChat);
-    
+
     // 初始化
-    updateConversationSystem();
     updateUI();
 </script>
 </body>
