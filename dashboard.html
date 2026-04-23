@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>情绪超市 · 内部监控报告</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: #D9C8A9;  /* 旧纸张底色 */
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-family: 'Courier New', 'American Typewriter', 'Segoe UI', monospace;
+            padding: 20px;
+        }
+
+        /* 纸张纹理 */
+        .paper {
+            max-width: 550px;
+            width: 100%;
+            background: #FDF8E7;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2), inset 0 0 0 1px rgba(255,255,200,0.8);
+            padding: 24px 20px;
+            position: relative;
+            border-radius: 4px;
+        }
+
+        /* 模拟打孔/撕边 */
+        .paper::before {
+            content: "";
+            position: absolute;
+            top: 20px;
+            left: -10px;
+            width: 20px;
+            height: 100px;
+            background: repeating-linear-gradient(90deg, #D9C8A9, #D9C8A9 8px, transparent 8px, transparent 16px);
+            pointer-events: none;
+        }
+
+        /* 红色印章装饰 */
+        .stamp {
+            position: absolute;
+            top: 30px;
+            right: 30px;
+            transform: rotate(-12deg);
+            color: #C13A3A;
+            font-size: 18px;
+            font-weight: bold;
+            font-family: 'Courier New', monospace;
+            border: 2px solid #C13A3A;
+            padding: 4px 10px;
+            border-radius: 4px;
+            opacity: 0.8;
+            background: rgba(193,58,58,0.05);
+            letter-spacing: 2px;
+        }
+
+        /* 手写批注样式 */
+        .handwritten {
+            font-family: 'KaiTi', 'Segoe UI', cursive;
+            color: #C13A3A;
+            font-size: 14px;
+            margin-left: 12px;
+            border-left: 2px solid #C13A3A;
+            padding-left: 8px;
+            display: inline-block;
+        }
+
+        /* 标题区域 */
+        .title {
+            text-align: center;
+            margin-bottom: 24px;
+            border-bottom: 2px dashed #8B6B4D;
+            padding-bottom: 12px;
+        }
+        .title h1 {
+            font-size: 24px;
+            letter-spacing: 2px;
+            color: #2C2C2C;
+            font-weight: normal;
+            font-family: 'Courier New', monospace;
+        }
+        .title p {
+            font-size: 12px;
+            color: #6B5A4A;
+            margin-top: 6px;
+            font-style: italic;
+        }
+
+        /* 数据表格（类似财务报表） */
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            font-size: 13px;
+        }
+        .data-table th {
+            text-align: left;
+            border-bottom: 1px solid #8B6B4D;
+            padding: 8px 4px;
+            color: #2C2C2C;
+            font-weight: bold;
+        }
+        .data-table td {
+            padding: 8px 4px;
+            border-bottom: 1px dotted #D1BC9A;
+            color: #3E3A35;
+        }
+        .data-table .value {
+            font-family: 'Courier New', monospace;
+            text-align: right;
+            font-weight: bold;
+            color: #A5482A;
+        }
+
+        /* 手写备注区 */
+        .note {
+            background: rgba(193,58,58,0.05);
+            border-left: 4px solid #C13A3A;
+            padding: 12px;
+            margin: 20px 0;
+            font-size: 12px;
+            color: #5A3E2E;
+            font-style: italic;
+        }
+
+        /* 实时日志（模拟打字机纸条） */
+        .log-section {
+            margin-top: 24px;
+            border-top: 1px dashed #D1BC9A;
+            padding-top: 16px;
+        }
+        .log-title {
+            font-size: 12px;
+            font-weight: bold;
+            text-transform: uppercase;
+            color: #2C2C2C;
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 12px;
+        }
+        .log-stream {
+            background: #FDF4E3;
+            padding: 12px;
+            font-family: 'Courier New', monospace;
+            font-size: 10px;
+            color: #1E1E1E;
+            height: 150px;
+            overflow-y: auto;
+            border: 1px solid #E1CFB5;
+            white-space: pre-wrap;
+        }
+        .log-stream div {
+            margin-bottom: 6px;
+            border-bottom: 0.5px dotted #E1CFB5;
+            padding-bottom: 4px;
+        }
+
+        /* 脚注 */
+        .footer {
+            text-align: center;
+            font-size: 9px;
+            color: #8E7A62;
+            margin-top: 24px;
+            border-top: 1px solid #E1CFB5;
+            padding-top: 12px;
+        }
+
+        /* 胶带贴纸效果 */
+        .tape {
+            position: absolute;
+            bottom: -8px;
+            left: 20%;
+            width: 60px;
+            height: 20px;
+            background: rgba(200,180,130,0.5);
+            transform: rotate(-3deg);
+            filter: blur(1px);
+            z-index: -1;
+        }
+
+        @keyframes flicker {
+            0% { opacity: 1; }
+            95% { opacity: 1; }
+            96% { opacity: 0.85; }
+            97% { opacity: 1; }
+        }
+        .paper {
+            animation: flicker 6s infinite;
+        }
+    </style>
+</head>
+<body>
+<div class="paper">
+    <div class="stamp">⚡ 机密 ⚡</div>
+    <div class="title">
+        <h1>情绪超市 · 实时监控后台</h1>
+        <p>内部数据流报告 / 未经授权严禁外泄</p>
+    </div>
+
+    <div class="note">
+        📌 内部批注：以下数据每2.5秒更新一次，来源于超市后台采集系统。数据真实性未经审计，仅供参考。
+        <span class="handwritten">—— 监控组长 2024.04.23</span>
+    </div>
+
+    <table class="data-table">
+        <thead>
+            <tr><th>监控指标</th><th>实时数值</th></tr>
+        </thead>
+        <tbody>
+            <tr><td>📊 情绪采集总数</td><td class="value" id="totalCollect">--</td></tr>
+            <tr><td>♻️ 焦虑回收量</td><td class="value" id="anxietyRecycled">--</td></tr>
+            <tr><td>📜 罢工申请数</td><td class="value" id="strikeApps">--</td></tr>
+            <tr><td>💬 AI对话总轮数</td><td class="value" id="aiRounds">--</td></tr>
+            <tr><td>📄 情绪档案发放数</td><td class="value" id="archivesIssued">--</td></tr>
+            <tr><td>⚠️ 当前异常波动</td><td class="value" id="anomaly">--</td></tr>
+        </tbody>
+    </table>
+
+    <div class="log-section">
+        <div class="log-title">
+            <span>📋 实时数据流日志</span>
+            <span class="handwritten" style="font-size:9px;">last updated: live</span>
+        </div>
+        <div class="log-stream" id="logStream">
+            <!-- 动态日志 -->
+        </div>
+    </div>
+
+    <div class="footer">
+        [系统v2.3] 数据每2.5秒刷新 · 所有记录将用于优化情绪剥削算法<br>
+        本报告由情绪超市内部监控系统自动生成，如有疑问请拨打虚拟热线400-000-0000（无人接听）
+    </div>
+    <div class="tape"></div>
+</div>
+
+<script>
+    // 随机整数
+    function randomInt(min, max) {
+        return Math.floor(Math.random() * (max - min + 1)) + min;
+    }
+
+    function formatNumber(num) {
+        return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+    }
+
+    // 日志消息库
+    const logMessages = [
+        "[03:47:22] 情绪采集 #H-01 完成",
+        "[03:47:23] 用户信用分更新 +2",
+        "[03:47:25] 检测到焦虑波动 +3%",
+        "[03:47:28] 数据上传中...",
+        "[03:47:30] 情绪档案同步完成",
+        "[03:47:32] AI对话轮数增加 5",
+        "[03:47:35] 罢工申请审核通过",
+        "[03:47:38] 异常波动阈值触发",
+        "[03:47:40] 数据包已加密",
+        "[03:47:42] 监控系统自检完成",
+        "[03:47:45] 发现可疑情绪波动，已标记",
+        "[03:47:48] 档案 #EM-0233 已发放",
+        "[03:47:52] 焦虑回收量突破阈值",
+        "[03:47:55] 服务器负载正常"
+    ];
+
+    function addRandomLog() {
+        const logContainer = document.getElementById('logStream');
+        const newLog = document.createElement('div');
+        const randomMsg = logMessages[Math.floor(Math.random() * logMessages.length)];
+        newLog.textContent = randomMsg;
+        logContainer.appendChild(newLog);
+        // 保留最多10条
+        while (logContainer.children.length > 10) {
+            logContainer.removeChild(logContainer.firstChild);
+        }
+        logContainer.scrollTop = logContainer.scrollHeight;
+    }
+
+    function updateData() {
+        document.getElementById('totalCollect').innerText = formatNumber(randomInt(1240, 3280));
+        document.getElementById('anxietyRecycled').innerText = randomInt(47, 315);
+        document.getElementById('strikeApps').innerText = randomInt(8, 68);
+        document.getElementById('aiRounds').innerText = randomInt(187, 845);
+        document.getElementById('archivesIssued').innerText = randomInt(23, 162);
+        document.getElementById('anomaly').innerText = randomInt(0, 32) + '%';
+    }
+
+    function init() {
+        updateData();
+        for (let i = 0; i < 6; i++) addRandomLog(); // 填充初始日志
+        setInterval(() => {
+            updateData();
+            addRandomLog();
+        }, 2500);
+        setInterval(() => {
+            addRandomLog();
+        }, 1200);
+    }
+
+    init();
+</script>
+</body>
+</html>
